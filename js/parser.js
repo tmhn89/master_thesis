@@ -48,7 +48,8 @@ const getProjectedPoint = (coords, projection) => {
 }
 
 const getMarkerRadius = (occurrence, zoom, period) => {
-  const periodLength = period[1] - period[0] + 1
+  // const periodLength = period[1] - period[0] + 1
+  const periodLength = period[1].diff(period[0], 'month') + 1
   const monthlyScale = d3.scaleLinear()
     // .domain([0, 160])
     .domain([0, 240 * periodLength]) // assume that a month has maximum 240 violations, multiply by number of months in period
@@ -106,14 +107,36 @@ const filterData = (data, conditions) => {
   if (conditions.period) {
     // result = data.filter(d => conditions.month.indexOf(parseInt(d.month)) > -1)
     result = data.filter(d =>
-      parseInt(d.month) >= conditions.period[0]
-      && parseInt(d.month) <= conditions.period[1]
+      moment(new Date(2019, d.month)).isBetween(
+        conditions.period[0],
+        conditions.period[1],
+        'month',
+        '[]'
+      )
     )
   }
 
   // continue writing other conditions here
   return result
 }
+
+/**
+ * parse time for calculation
+ * @param {*} year
+ * @param {*} month
+ */
+const parseTime = (year, month) => {
+  return d3.timeParse('%Y-%m')(`${year}-${month}`)
+}
+
+/**
+ * Format time for display
+ * @param {*} date
+ */
+const formatTime = date => {
+  return d3.timeFormat('%b %Y')(date)
+}
+
 
 const printLegend = (content) => {
   let legendEl = document.getElementById('legend')

@@ -1,7 +1,7 @@
 const timeline = () => {
   var data      = [],
       chartArea = null,
-      selected  = [11, 11],
+      selected  = [moment(new Date(2019, 11)), moment(new Date(2019, 11))],
       width     = 800,
       height    = 200,
       margin    = { left: 64, top: 32 },
@@ -26,10 +26,12 @@ const timeline = () => {
       .attr('id', 'psSvg')
       .attr('width', width)
       .attr('height', height)
+
+    // @todo - recheck this when data from other year comes
+    const months = data.map(d => moment(new Date(2019, d.month)))
     // scales
-    scale.x = d3.scaleLinear()
-      .domain([0, 13])
-      // .domain(d3.extent(data, d => parseInt(d.month)))
+    scale.x = d3.scaleTime()
+      .domain([months[0].valueOf(), months.slice(-1)[0].valueOf()])
       .range([0, width - margin.left * 2])
     scale.y = d3.scaleLinear()
       .domain([0, d3.max(data, d => d.violations)])
@@ -66,7 +68,7 @@ const timeline = () => {
       .data(data)
       .enter()
       .append('rect')
-        .attr('x', d => scale.x(d.month))
+        .attr('x', d => scale.x(moment(new Date(2019, d.month))))
         .attr('y', d => scale.y(d.violations) + margin.top * 2)
         .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
         .attr('width', barWidth)
@@ -106,7 +108,7 @@ const timeline = () => {
         // then map the selection as period start & end
         selected = rawSelection
           .map(scale.x.invert)
-          .map(Math.round)
+          .map(self.monthRounding)
 
         d3.select(this)
           .transition()
@@ -132,13 +134,13 @@ const timeline = () => {
     // https://bl.ocks.org/mbostock/6498000
     chartArea.selectAll('.overlay')
       .each(d => { d.type = 'selection' })
-      .on("mousedown touchstart", brushcentered)
+      .on('mousedown touchstart', brushcentered)
 
     function brushcentered() {
       var dx = barWidth, // Use a fixed width when recentering.
-      cx = d3.mouse(this)[0],
-      x0 = cx - dx / 2,
-      x1 = cx + dx / 2;
+          cx = d3.mouse(this)[0],
+          x0 = cx - dx / 2,
+          x1 = cx + dx / 2;
       d3.select(this.parentNode).call(brush.move, x1 > width ? [width - dx, width] : x0 < 0 ? [0, dx] : [x0, x1]);
     }
   }
@@ -174,6 +176,15 @@ const timeline = () => {
           ? null
           : (d, i) => `translate(${selection[i]}, -${(height) / 2 - margin.top})`
         )
+  }
+
+  self.monthRounding = date => {
+    let dateNum = moment(date).date()
+
+    let rounded = moment(date).date(1).hour(0).minute(0).second(0)
+    return dateNum < 15
+      ? rounded
+      : rounded.add(1, 'month')
   }
 
   // data-setter
