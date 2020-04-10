@@ -84,7 +84,7 @@ const bubbleMaps = () => {
     canvasMarkers.forEach(marker => {
       let x = getProjectedPoint(marker.coords, projection)[0]
       let y = getProjectedPoint(marker.coords, projection)[1]
-      let radius = getMarkerRadius(marker.total, basemap.getZoom())
+      let radius = getMarkerRadius(marker.total, basemap.getZoom(), filter.period)
       // iterate marker list and draw
       context.strokeStyle = getMarkerColor(marker)
       context.fillStyle = chroma(getMarkerColor(marker)).alpha(0.5)
@@ -118,8 +118,8 @@ const bubbleMaps = () => {
         .attr('cy', d => { return getProjectedPoint(d.coords, projection)[1] })
         .style('fill', 'transparent')
         .attr('fill-opacity', 0.5)
-        .attr('r', d => getMarkerRadius(d.total, basemap.getZoom()))
-      .on('click', d => { console.log(d); printLegend(d) })
+        .attr('r', d => getMarkerRadius(d.total, basemap.getZoom(), filter.period))
+      .on('click', d => printLegend(d))
       .on('mouseover', function (d) {
         d3.select(this)
           .style('fill', d => getMarkerColor(d))
