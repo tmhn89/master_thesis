@@ -1,0 +1,65 @@
+[
+    {
+        "name_en": "Stopping / parking at the space reserved for specific vehicle",
+        "name_fi": "Pysäköinti lisäkilvessä mainituille ajoneuvoille varatulle paikalle",
+        "color": "#F6D9CB",
+        "color2": "#F0E442",
+        "ids": ["02","10","11","12","18","27"]
+    },
+    {
+        "name_en": "Stopping / parking in prohibited area",
+        "name_fi": "Pysäköintikieltoalue liikennemerkin noudattamatta jättäminen",
+        "color": "#F1B89C",
+        "color2": "#F1B89C",
+        "ids": ["10","11","04"]
+    },
+    {
+        "name_en": "Stopping / parking violates the traffic sign",
+        "name_fi": "Pysäyttäminen / Pysäköinti kielletty liikennemerkin noudattamatta jättäminen",
+        "color": "#DF7649",
+        "color2": "#E69F00",
+        "ids": ["01","03","20"]
+    },
+    {
+        "name_en": "Stopping / parking hampered other traffic",
+        "name_fi": "Muuta liikennettä haittaava pysäköinti",
+        "color": "#CF4F4F",
+        "color2": "#D55E00",
+        "ids": ["05","13","14","15","19","21","22","24","28","29"]
+    },
+    {
+        "name_en": "Payment related",
+        "name_fi": "Pysäköintimaksun suorittamatta jättäminen",
+        "color": "#BDE7F4",
+        "color2": "#0072B2",
+        "ids": ["06","07"]
+    },
+    {
+        "name_en": "Time limit related",
+        "name_fi": "Sallitun pysäköintiajan ylitys",
+        "color": "#A3D393",
+        "color2": "#6EAF4A",
+        "ids": ["08","09"]
+    },
+    {
+        "name_en": "Parking disc / permit related",
+        "name_fi": "Pysäköinti ilman P-kiekkoa/P-tunnusta",
+        "color": "#8DA2B4",
+        "color2": "#56B4E9",
+        "ids": ["16","17","23"]
+    },
+    {
+        "name_en": "Other reasons",
+        "name_fi": "Muut",
+        "color": "#BEC6CC",
+        "color2": "#CC79A7",
+        "ids": ["25","26","30"]
+    },
+    {
+        "name_en": "No reason specified",
+        "name_fi": "Ei määritelty",
+        "color": "#E4E4E4",
+        "color2": "#808080",
+        "ids": ["99"]
+    }
+]

@@ -1,0 +1,52 @@
+body {
+  margin: 0;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  grid-template-rows: 1fr 240px;
+  width: 100vw;
+  height: 100vh;
+}
+
+.wrapper {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.wrapper > * {
+  box-shadow: 0px 0px 25px rgba(0,0,0,0.1);
+  margin: 0 auto;
+}
+
+#d3Svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+}
+
+#rSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+#d3Canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.chart__line {
+  fill: none;
+  stroke: #ed3700;
+}
+
+rect.selection {
+  fill: #999;
+  fill-opacity: 0.2
+}
