@@ -7,7 +7,7 @@ const bubbleMaps = () => {
       svg           = null,
       mapData       = null,
       violationData = null,
-      filter        = { period: [11, 11], reason: null, bound: null },
+      filter        = { period: [parseTime(2019, 11), parseTime(2019, 11)], reason: null, bound: null },
       canvasMarkers = [],
       svgMarkers    = []
 
@@ -62,8 +62,8 @@ const bubbleMaps = () => {
   }
 
   self.draw = () => {
-    self.drawLegend()
     self.drawCanvas()
+    self.drawLegend()
     // draw only markers visible on map when zoom level is greater than 14
     if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
       self.drawSvg()
@@ -146,10 +146,11 @@ const bubbleMaps = () => {
       .attr('width', width)
       .attr('height', height)
 
-    let sampleSize = [1, 100, 250]
-    let periodLength = filter.period[1] - filter.period[0] // months
-    if (periodLength >= 2) { sampleSize = [50, 250, 500] }
-    if (periodLength >= 5) { sampleSize = [50, 500, 1000] }
+    let sampleSize = []
+    let periodLength = d3.timeMonth.count(...filter.period) + 1  // months
+    if (periodLength < 3) { sampleSize = [1, 100, 250] }
+    if (periodLength >= 3) { sampleSize = [50, 250, 500] }
+    if (periodLength >= 6) { sampleSize = [50, 500, 1000] }
 
 
     lSvg.selectAll('.legend__circle')
