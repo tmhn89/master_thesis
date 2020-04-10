@@ -30,6 +30,7 @@ const bubbleMaps = () => {
       style: 'mapbox://styles/mapbox/light-v10',
       center: center,
       zoom: 12,
+      minZoom: 11
     })
 
     basemap.on('load', () => {
@@ -61,6 +62,7 @@ const bubbleMaps = () => {
   }
 
   self.draw = () => {
+    self.drawLegend()
     self.drawCanvas()
     // draw only markers visible on map when zoom level is greater than 14
     if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
@@ -130,6 +132,62 @@ const bubbleMaps = () => {
           .style('fill', 'transparent')
           .attr('stroke', 'transparent')
       })
+  }
+
+  // draw legend with sample size of violations
+  self.drawLegend = () => {
+    d3.select('#lSvg').remove()
+    const scaledRadius = r => getMarkerRadius(r, basemap.getZoom(), filter.period)
+
+    var lSvg = d3.select(basemap.getCanvasContainer())
+      .append('svg')
+      .attr('id', 'lSvg')
+      .attr('class', 'svg-wrapper')
+      .attr('width', width)
+      .attr('height', height)
+
+    let sampleSize = [1, 100, 250]
+    let periodLength = filter.period[1] - filter.period[0] // months
+    if (periodLength >= 2) { sampleSize = [50, 250, 500] }
+    if (periodLength >= 5) { sampleSize = [50, 500, 1000] }
+
+
+    lSvg.selectAll('.legend__circle')
+      .data(sampleSize)
+      .enter()
+      .append('circle')
+        .attr('class', 'legend__circle')
+        .attr('cx', width - 96)
+        .attr('cy', height - 32)
+        .style('fill', 'transparent')
+        .attr('stroke', '#666')
+        .attr('r', d => scaledRadius(d))
+        .attr('transform', d => `translate(0, -${scaledRadius(d)})`)
+
+    // Add legend: segments
+    lSvg
+      .selectAll('.legend__line')
+      .data(sampleSize)
+      .enter()
+      .append("line")
+        .attr('x1', d => width - 96 - scaledRadius(d))
+        .attr('x2', d => width - 128 - scaledRadius(d))
+        .attr('y1', d => height - 32 - scaledRadius(d) )
+        .attr('y2', d => height - 32 - scaledRadius(d) )
+        .attr('stroke', 'black')
+        .style('stroke-dasharray', ('2,2'))
+
+    lSvg
+      .selectAll('.legend__text')
+      .data(sampleSize)
+      .enter()
+      .append("text")
+        .attr('x', d => width - 132 - scaledRadius(d))
+        .attr('y', d => height - 32 - scaledRadius(d) )
+        .text(d => d)
+        .style("font-size", 10)
+        .attr('alignment-baseline', 'middle')
+        .attr('text-anchor', 'end')
   }
 
   // the plan is to take helsinki border and clip the basemap based on it. will come back later

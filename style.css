@@ -20,6 +20,12 @@ body {
   margin: 0 auto;
 }
 
+.svg-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 #d3Svg {
   position: absolute;
   top: 0;
