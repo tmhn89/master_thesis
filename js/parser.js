@@ -98,7 +98,6 @@ const getMarkerColor = marker => {
  * @param {*} conditions month (array), reason (array)
  */
 const filterData = (data, conditions) => {
-  console.log(conditions)
   if (!conditions) { return data }
 
   let result = data
@@ -148,7 +147,6 @@ const printSummary = dataset => {
   const locations = [...new Set(dataset.map(d => d.coords))].length
 
   const locationGroups = d3.group(dataset, d => d.coords)
-  console.log(locationGroups)
   const violationsByLocation = Array.from(locationGroups.entries())
     .map(row => {
       return {
@@ -186,7 +184,6 @@ const printSummary = dataset => {
  */
 getDatasetMonthlySummary = dataset => {
   let groups = d3.group(dataset, d => d.month)
-  console.log(groups)
   let result = []
 
   Array.from(groups.keys())

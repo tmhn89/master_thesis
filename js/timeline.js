@@ -96,7 +96,7 @@ const timeline = () => {
         // update bursh data
         d3.select(this).call(self.brushHandle, selection)
       })
-      .on('start end', function () {
+      .on('end', function () {
         // snap the selection to month position after brush end
         if (!d3.event.sourceEvent) return
         // selection as position on chart
@@ -108,15 +108,15 @@ const timeline = () => {
           .map(scale.x.invert)
           .map(Math.round)
 
-        // self.dispatchEvent(changeEvent)
-        d3.select('#psSvg').dispatch('changed', { detail: { period: selected }})
-
         d3.select(this)
           .transition()
+          .duration(SNAPPING_ANIMATION_DURATION)
           .call(d3.event.target.move, [
             scale.x(selected[0]) - barWidth / 2,
             scale.x(selected[1]) + barWidth / 2
           ])
+
+        d3.select('#psSvg').dispatch('changed', { detail: { period: selected }})
       })
 
     // append brush to chart area
@@ -127,6 +127,20 @@ const timeline = () => {
           scale.x(selected[0]) - barWidth / 2,
           scale.x(selected[1]) + barWidth / 2
         ])
+    // override default behaviour - clicking outside of the selected area
+    // will select a small piece there rather than deselecting everything
+    // https://bl.ocks.org/mbostock/6498000
+    chartArea.selectAll('.overlay')
+      .each(d => { d.type = 'selection' })
+      .on("mousedown touchstart", brushcentered)
+
+    function brushcentered() {
+      var dx = barWidth, // Use a fixed width when recentering.
+      cx = d3.mouse(this)[0],
+      x0 = cx - dx / 2,
+      x1 = cx + dx / 2;
+      d3.select(this.parentNode).call(brush.move, x1 > width ? [width - dx, width] : x0 < 0 ? [0, dx] : [x0, x1]);
+    }
   }
 
   self.brushHandle = (g, selection) => {

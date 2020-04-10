@@ -1,5 +1,6 @@
 
-const ZOOM_INTERACTION_LEVEL = 14
+const ZOOM_INTERACTION_LEVEL      = 14
+const SNAPPING_ANIMATION_DURATION = 300
 
 var addressBook = []
 var reasonGroups = []
@@ -21,7 +22,6 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
     maps('bubblemaps')
 
     periodSelector.on('changed', event => {
-      console.log('changed', event)
       maps.filter({
         period: event.detail.period
       })

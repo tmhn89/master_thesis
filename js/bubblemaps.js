@@ -196,8 +196,11 @@ const bubbleMaps = () => {
   self.filter = value => {
     if (!value) { return filter }
     filter = value
-    self.generateMarkers()
-    self.draw()
+    // only start drawing when period selector snapping complete
+    setTimeout(() => {
+      self.generateMarkers()
+      self.draw()
+    }, SNAPPING_ANIMATION_DURATION + 100)
     return self
   }
 
