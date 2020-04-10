@@ -1,7 +1,7 @@
 const timeline = () => {
   var data      = [],
       chartArea = null,
-      selected  = [moment(new Date(2019, 11)), moment(new Date(2019, 11))],
+      selected  = [parseTime(2019, 11), parseTime(2019, 11)],
       width     = 800,
       height    = 200,
       margin    = { left: 64, top: 32 },
@@ -28,17 +28,19 @@ const timeline = () => {
       .attr('height', height)
 
     // @todo - recheck this when data from other year comes
-    const months = data.map(d => moment(new Date(2019, d.month)))
+    const months = data.map(d => parseTime(2019, d.month))
     // scales
     scale.x = d3.scaleTime()
-      .domain([months[0].valueOf(), months.slice(-1)[0].valueOf()])
+      .domain([d3.timeMonth.offset(d3.min(months), -1), d3.timeMonth.offset(d3.max(months), +1)])
       .range([0, width - margin.left * 2])
     scale.y = d3.scaleLinear()
       .domain([0, d3.max(data, d => d.violations)])
       .range([height - margin.top * 2, 0])
       .nice()
     // axis
-    axis.x = d3.axisBottom(scale.x),
+    axis.x = d3.axisBottom(scale.x)
+      .ticks(d3.timeMonth, 1)
+      .tickFormat(d3.timeFormat('%b %Y'))
     axis.y = d3.axisLeft(scale.y)
 
     // chart area to draw chart and brush on
@@ -68,7 +70,7 @@ const timeline = () => {
       .data(data)
       .enter()
       .append('rect')
-        .attr('x', d => scale.x(moment(new Date(2019, d.month))))
+        .attr('x', d => scale.x(parseTime(2019, d.month)))
         .attr('y', d => scale.y(d.violations) + margin.top * 2)
         .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
         .attr('width', barWidth)
@@ -108,7 +110,7 @@ const timeline = () => {
         // then map the selection as period start & end
         selected = rawSelection
           .map(scale.x.invert)
-          .map(self.monthRounding)
+          .map(d3.timeMonth.round)
 
         d3.select(this)
           .transition()
@@ -176,15 +178,6 @@ const timeline = () => {
           ? null
           : (d, i) => `translate(${selection[i]}, -${(height) / 2 - margin.top})`
         )
-  }
-
-  self.monthRounding = date => {
-    let dateNum = moment(date).date()
-
-    let rounded = moment(date).date(1).hour(0).minute(0).second(0)
-    return dateNum < 15
-      ? rounded
-      : rounded.add(1, 'month')
   }
 
   // data-setter

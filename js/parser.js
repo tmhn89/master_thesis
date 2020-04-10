@@ -49,7 +49,7 @@ const getProjectedPoint = (coords, projection) => {
 
 const getMarkerRadius = (occurrence, zoom, period) => {
   // const periodLength = period[1] - period[0] + 1
-  const periodLength = period[1].diff(period[0], 'month') + 1
+  const periodLength = d3.timeMonth.count(...period) + 1
   const monthlyScale = d3.scaleLinear()
     // .domain([0, 160])
     .domain([0, 240 * periodLength]) // assume that a month has maximum 240 violations, multiply by number of months in period
@@ -107,14 +107,12 @@ const filterData = (data, conditions) => {
   if (conditions.period) {
     // result = data.filter(d => conditions.month.indexOf(parseInt(d.month)) > -1)
     result = data.filter(d =>
-      moment(new Date(2019, d.month)).isBetween(
-        conditions.period[0],
-        conditions.period[1],
-        'month',
-        '[]'
-      )
+      d3.timeMonth.count(parseTime(2019, d.month), conditions.period[0]) <= 0
+      && d3.timeMonth.count(parseTime(2019, d.month), conditions.period[1]) >= 0
     )
   }
+
+  console.log(conditions, )
 
   // continue writing other conditions here
   return result
@@ -163,6 +161,11 @@ const printLegend = (content) => {
  * @param {*} dataset
  */
 const printSummary = dataset => {
+  if (dataset.length === 0) {
+    document.getElementById('stats').innerHTML = '<div>No data available</div>'
+    return
+  }
+
   // generate summary
   const violations = dataset.reduce(
     (total, current) => total + parseInt(current.occurrence),

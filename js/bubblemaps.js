@@ -7,7 +7,7 @@ const bubbleMaps = () => {
       svg           = null,
       mapData       = null,
       violationData = null,
-      filter        = { period: [moment(new Date(2019, 11)), moment(new Date(2019, 11))], reason: null, bound: null },
+      filter        = { period: [parseTime(2019, 11), parseTime(2019, 11)], reason: null, bound: null },
       canvasMarkers = [],
       svgMarkers    = []
 
@@ -147,8 +147,7 @@ const bubbleMaps = () => {
       .attr('height', height)
 
     let sampleSize = []
-    let periodLength = filter.period[1].diff(filter.period[0], 'month') + 1  // months
-    // let periodLength = filter.period[1] - filter.period[0] // months
+    let periodLength = d3.timeMonth.count(...filter.period) + 1  // months
     if (periodLength < 3) { sampleSize = [1, 100, 250] }
     if (periodLength >= 3) { sampleSize = [50, 250, 500] }
     if (periodLength >= 6) { sampleSize = [50, 500, 1000] }
