@@ -8,7 +8,7 @@ start_time = time.time()
 import googlemaps
 gmaps = googlemaps.Client(key='AIzaSyBoLgIe6ZT1H1yutB1NYr4P3bJJJfyhwE0')
 
-year = 2019
+year = 2018
 rec = 1
 
 print('-- start --')
