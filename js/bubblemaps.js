@@ -8,8 +8,7 @@ const bubbleMaps = () => {
       mapData         = null,
       violationData   = null,
       filter          = { period: [parseTime(2019, 11), parseTime(2019, 11)], reason: null, bound: null },
-      allMarkers      = [],
-      visibleMarkers  = []
+      allMarkers      = []
 
   // constructor
   const self = (wrapperId) => {
@@ -50,11 +49,12 @@ const bubbleMaps = () => {
 
       // only redraw canvas on low zoom level when less than 3 months selected
       let periodLength = d3.timeMonth.count(...filter.period) + 1  // months
-      if (periodLength >= 3) {
+      if (periodLength >= 3 && basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
         self.clear()
         return
       }
       // only draw on canvas when map move
+      d3.select('#d3Svg').remove()
       self.drawCanvas(self.getVisibleMarkers())
     })
 
