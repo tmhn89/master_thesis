@@ -112,8 +112,6 @@ const filterData = (data, conditions) => {
     )
   }
 
-  console.log(conditions, )
-
   // continue writing other conditions here
   return result
 }

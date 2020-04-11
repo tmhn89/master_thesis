@@ -51,6 +51,9 @@ const timeline = () => {
       .attr('class', 'axis axis--x')
       .attr('transform', `translate(0, ${height - margin.top * 2})`)
       .call(axis.x)
+        .selectAll('text')
+        .attr('dy', '15')
+        .attr('transform', 'rotate(25)')
 
     chartArea.append('g')
       .attr('class', 'axis axis--y')
@@ -111,8 +114,6 @@ const timeline = () => {
         selected = rawSelection
           .map(scale.x.invert)
           .map(d3.timeMonth.round)
-
-        console.log('selected', selected)
 
         d3.select(this)
           .transition()
