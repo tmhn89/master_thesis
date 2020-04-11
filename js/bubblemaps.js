@@ -47,8 +47,15 @@ const bubbleMaps = () => {
 
     basemap.on('move', () => {
       // self.drawRegionMap()
+
+      // only redraw canvas on low zoom level when less than 3 months selected
+      let periodLength = d3.timeMonth.count(...filter.period) + 1  // months
+      if (periodLength >= 3) {
+        self.clear()
+        return
+      }
       // only draw on canvas when map move
-      self.draw()
+      self.drawCanvas(self.getVisibleMarkers())
     })
 
     basemap.on('resize', () => {
@@ -60,36 +67,28 @@ const bubbleMaps = () => {
   }
 
   self.draw = () => {
-    visibleMarkers = groupByOccurrence(
-      allMarkers
-        .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))
-    )
-
-    self.drawCanvas()
+    self.drawCanvas(self.getVisibleMarkers())
     // draw only markers visible on map when zoom level is greater than 14
     if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
-      self.drawSvg()
-    } else {
-      self.drawCanvas()
+      self.drawSvg(self.getVisibleMarkers())
     }
   }
 
-  self.drawCanvas = () => {
-    // return
+  self.drawCanvas = markers => {
     self.setupProjection()
+    if (!document.getElementById('d3Canvas')) {
+      d3.select(basemap.getCanvasContainer())
+        .append('canvas')
+        .attr('id', 'd3Canvas')
+        .attr('width', width)
+        .attr('height', height)
+    }
 
-    d3.select('#d3Canvas').remove()
-    d3.select(basemap.getCanvasContainer())
-      .append('canvas')
-      .attr('id', 'd3Canvas')
-      .attr('width', width)
-      .attr('height', height)
-    .on('click', e => console.log(d3.event))
     // get context and clear the canvas
     var context = d3.select('#d3Canvas').node().getContext('2d')
     context.clearRect(0, 0, width, height)
 
-    visibleMarkers.forEach(marker => {
+    markers.forEach(marker => {
       let x = getProjectedPoint(marker.coords, projection)[0]
       let y = getProjectedPoint(marker.coords, projection)[1]
       let radius = getMarkerRadius(marker.total, basemap.getZoom(), filter.period)
@@ -109,7 +108,9 @@ const bubbleMaps = () => {
   /**
    * draw invisible svg markers on top of canvas for interaction
    */
-  self.drawSvg = () => {
+  self.drawSvg = markers => {
+    self.setupProjection()
+
     d3.select('#d3Svg').remove()
     svg = d3.select(basemap.getCanvasContainer())
       .append('svg')
@@ -118,10 +119,11 @@ const bubbleMaps = () => {
       .attr('height', height)
 
     svg
-      .selectAll('violation')
-      .data(visibleMarkers)
+      .selectAll('.violation-marker')
+      .data(markers)
       .enter()
       .append('circle')
+        .attr('class', 'violation-marker')
         .attr('cx', d => { return getProjectedPoint(d.coords, projection)[0] })
         .attr('cy', d => { return getProjectedPoint(d.coords, projection)[1] })
         .style('fill', 'transparent')
@@ -238,6 +240,18 @@ const bubbleMaps = () => {
     ])
   }
 
+  // get markers within map boundary
+  self.getVisibleMarkers = () => {
+    if (!allMarkers || allMarkers.length === 0) {
+      return []
+    }
+
+    return groupByOccurrence(
+      allMarkers
+        .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))
+    )
+  }
+
   // center-setter - takes lat first, then lng
   self.center = (lng, lat) => {
     if (!lng || !lat) { return center }
@@ -281,11 +295,9 @@ const bubbleMaps = () => {
     }
   }
 
-  // clear svg content
-  self.clearSvg = () => {
-    if (svg) {
-      svg.selectAll('*').remove()
-    }
+  self.clear = () => {
+    var context = d3.select('#d3Canvas').node().getContext('2d')
+    context.clearRect(0, 0, width, height)
   }
 
   return self
