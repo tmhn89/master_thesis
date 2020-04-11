@@ -7,7 +7,7 @@ const timeline = () => {
       margin    = { left: 64, top: 32 },
       scale     = { x: null, y: null},
       axis      = { x: null, y: null},
-      barWidth  = 30
+      barWidth  = 10
 
   const self = (wrapperId) => {
     if (!wrapperId) {
@@ -28,7 +28,7 @@ const timeline = () => {
       .attr('height', height)
 
     // @todo - recheck this when data from other year comes
-    const months = data.map(d => parseTime(2019, d.month))
+    const months = data.map(d => parseTime(d.year, d.month))
     // scales
     scale.x = d3.scaleTime()
       .domain([d3.timeMonth.offset(d3.min(months), -1), d3.timeMonth.offset(d3.max(months), +1)])
@@ -70,7 +70,7 @@ const timeline = () => {
       .data(data)
       .enter()
       .append('rect')
-        .attr('x', d => scale.x(parseTime(2019, d.month)))
+        .attr('x', d => scale.x(parseTime(d.year, d.month)))
         .attr('y', d => scale.y(d.violations) + margin.top * 2)
         .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
         .attr('width', barWidth)
@@ -111,6 +111,8 @@ const timeline = () => {
         selected = rawSelection
           .map(scale.x.invert)
           .map(d3.timeMonth.round)
+
+        console.log('selected', selected)
 
         d3.select(this)
           .transition()
@@ -182,7 +184,6 @@ const timeline = () => {
 
   // data-setter
   self.data = value => {
-    console.log(value)
     if (!value) { return data }
     data = value
     return self

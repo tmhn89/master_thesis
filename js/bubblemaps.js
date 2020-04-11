@@ -1,15 +1,15 @@
 const bubbleMaps = () => {
-  var width         = 800,
-      height        = 600,
-      center        = [24.937753465964533, 60.177494774748794],
-      projection    = d3.geoMercator(),
-      basemap       = null,
-      svg           = null,
-      mapData       = null,
-      violationData = null,
-      filter        = { period: [parseTime(2019, 11), parseTime(2019, 11)], reason: null, bound: null },
-      canvasMarkers = [],
-      svgMarkers    = []
+  var width           = 800,
+      height          = 600,
+      center          = [24.937753465964533, 60.177494774748794],
+      projection      = d3.geoMercator(),
+      basemap         = null,
+      svg             = null,
+      mapData         = null,
+      violationData   = null,
+      filter          = { period: [parseTime(2019, 11), parseTime(2019, 11)], reason: null, bound: null },
+      allMarkers      = [],
+      visibleMarkers  = []
 
   // constructor
   const self = (wrapperId) => {
@@ -46,31 +46,36 @@ const bubbleMaps = () => {
     })
 
     basemap.on('move', () => {
-      self.clearSvg()
       // self.drawRegionMap()
       // only draw on canvas when map move
-      self.drawCanvas()
+      self.draw()
     })
 
     basemap.on('resize', () => {
-      self.clearSvg()
       // set map-related component dimension again
       width = basemap.getContainer().clientWidth
       height = basemap.getContainer().clientHeight
-      self.drawCanvas()
+      self.draw()
     })
   }
 
   self.draw = () => {
+    visibleMarkers = groupByOccurrence(
+      allMarkers
+        .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))
+    )
+
     self.drawCanvas()
-    self.drawLegend()
     // draw only markers visible on map when zoom level is greater than 14
     if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
       self.drawSvg()
+    } else {
+      self.drawCanvas()
     }
   }
 
   self.drawCanvas = () => {
+    // return
     self.setupProjection()
 
     d3.select('#d3Canvas').remove()
@@ -79,11 +84,12 @@ const bubbleMaps = () => {
       .attr('id', 'd3Canvas')
       .attr('width', width)
       .attr('height', height)
+    .on('click', e => console.log(d3.event))
     // get context and clear the canvas
     var context = d3.select('#d3Canvas').node().getContext('2d')
     context.clearRect(0, 0, width, height)
 
-    canvasMarkers.forEach(marker => {
+    visibleMarkers.forEach(marker => {
       let x = getProjectedPoint(marker.coords, projection)[0]
       let y = getProjectedPoint(marker.coords, projection)[1]
       let radius = getMarkerRadius(marker.total, basemap.getZoom(), filter.period)
@@ -113,7 +119,7 @@ const bubbleMaps = () => {
 
     svg
       .selectAll('violation')
-      .data(svgMarkers)
+      .data(visibleMarkers)
       .enter()
       .append('circle')
         .attr('cx', d => { return getProjectedPoint(d.coords, projection)[0] })
@@ -121,6 +127,7 @@ const bubbleMaps = () => {
         .style('fill', 'transparent')
         .attr('fill-opacity', 0.5)
         .attr('r', d => getMarkerRadius(d.total, basemap.getZoom(), filter.period))
+        .attr('cursor', 'pointer')
       .on('click', d => printLegend(d))
       .on('mouseover', function (d) {
         d3.select(this)
@@ -186,7 +193,7 @@ const bubbleMaps = () => {
         .attr('x', d => width - 132 - scaledRadius(d))
         .attr('y', d => height - 32 - scaledRadius(d) )
         .text(d => d)
-        .style("font-size", 10)
+        .style('font-size', 10)
         .attr('alignment-baseline', 'middle')
         .attr('text-anchor', 'end')
   }
@@ -266,17 +273,11 @@ const bubbleMaps = () => {
   self.generateMarkers = () => {
     if (violationData && basemap) {
       // generate marker list on filter change
-      let filteredData = filterData(violationData, filter)
-      printSummary(filteredData)
-
-      canvasMarkers = groupByOccurrence(filteredData)
-      svgMarkers = groupByOccurrence(
-        filteredData
-          .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))
-      )
+      allMarkers = filterData(violationData, filter)
+      printSummary(allMarkers)
     } else {
-      canvasMarkers = []
-      svgMarkers = []
+      allMarkers = []
+      visibleMarkers = []
     }
   }
 
