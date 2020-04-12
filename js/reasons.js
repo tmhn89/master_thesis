@@ -7,14 +7,14 @@ const reasonList = () => {
       return
     }
 
-    self.printSummary('wrapperId', data)
+    self.printSummary(wrapperId, data)
     // add interaction
   }
 
   /**
    * Get the stats of filtered dataset
    */
-  const printSummary = (wrapperId, data) => {
+  self.printSummary = (wrapperId, data) => {
     if (data.length === 0) {
       document.getElementById(wrapperId).innerHTML = '<div>No data available</div>'
       return

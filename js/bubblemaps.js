@@ -73,12 +73,14 @@ const bubbleMaps = () => {
   }
 
   self.draw = () => {
+    showLoader(true)
     self.drawLegend()
     self.drawCanvas(self.getVisibleMarkers())
     // draw only markers visible on map when zoom level is greater than 14
     if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
       self.drawSvg(self.getVisibleMarkers())
     }
+    showLoader(false)
   }
 
   self.drawCanvas = markers => {

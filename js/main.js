@@ -6,6 +6,7 @@ var addressBook = []
 var reasonGroups = []
 var maps = bubbleMaps()
 var periodSelector = timeline()
+var reasonSelector = reasonList()
 
 var filter = {
   period: [parseTime(2019, 11), parseTime(2019, 11)],
@@ -15,7 +16,6 @@ var filter = {
 
 var filterDispatch = d3.dispatch('filter', 'filterChanged')
 
-console.log('-- Start --', new Date())
 Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
   .then(data => {
     addressBook = data[0]
@@ -29,19 +29,24 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
     // render the viz
     maps('bubblemaps')
 
-    periodSelector.on('changed', event => {
-      maps.filter({
-        period: event.detail.period
-      })
-    })
+    // periodSelector.on('changed', event => {
+    //   maps.filter({
+    //     period: event.detail.period
+    //   })
+    // })
 
     filterDispatch.on('filter', data => {
-      console.log('trigger filter changing')
+      // update the filter, then trigger filter change event
       Object.assign(filter, data)
       filterDispatch.call('filterChanged')
     })
-
-    console.log('-- Done loading --', new Date())
   })
 
-
+/**
+ * Show/hide loader
+ * @param {*} state true for showing / false for hiding
+ */
+const showLoader = state => {
+  // document.querySelector('.progress-bar').hidden = !state
+  document.querySelector('.loader').hidden = !state
+}

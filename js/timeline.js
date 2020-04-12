@@ -102,6 +102,7 @@ const timeline = () => {
         const selection = d3.event.selection
         // update bursh data
         d3.select(this).call(self.brushHandle, selection)
+        showLoader(true)
       })
       .on('end', function () {
         // snap the selection to month position after brush end
@@ -117,7 +118,7 @@ const timeline = () => {
 
         d3.select(this)
           .transition()
-          .duration(SNAPPING_ANIMATION_DURATION)
+          // .duration(SNAPPING_ANIMATION_DURATION)
           .on('end', () => { filterDispatch.call('filter', this, { period: selected }) })
           .call(d3.event.target.move, [
             scale.x(selected[0]) - barWidth / 2,
