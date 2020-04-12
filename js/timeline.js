@@ -118,12 +118,11 @@ const timeline = () => {
         d3.select(this)
           .transition()
           .duration(SNAPPING_ANIMATION_DURATION)
+          .on('end', () => { filterDispatch.call('filter', this, { period: selected }) })
           .call(d3.event.target.move, [
             scale.x(selected[0]) - barWidth / 2,
             scale.x(selected[1]) + barWidth / 2
           ])
-
-        d3.select('#psSvg').dispatch('changed', { detail: { period: selected }})
       })
 
     // append brush to chart area

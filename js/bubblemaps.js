@@ -7,7 +7,6 @@ const bubbleMaps = () => {
       svg             = null,
       mapData         = null,
       violationData   = null,
-      filter          = { period: [parseTime(2019, 11), parseTime(2019, 11)], reason: null, bound: null },
       allMarkers      = []
 
   // constructor
@@ -38,6 +37,13 @@ const bubbleMaps = () => {
       height = basemap.getContainer().clientHeight
       self.generateMarkers()
       // self.drawRegionMap()
+
+      // start listen to global filter
+      filterDispatch
+        .on('filterChanged', () => {
+          self.generateMarkers()
+          self.draw()
+        })
     })
 
     basemap.on('idle', () => {
@@ -271,17 +277,6 @@ const bubbleMaps = () => {
     if (!value) { return violationData }
     violationData = value
     self.generateMarkers()
-    return self
-  }
-
-  self.filter = value => {
-    if (!value) { return filter }
-    filter = value
-    // only start drawing when period selector snapping complete
-    setTimeout(() => {
-      self.generateMarkers()
-      self.draw()
-    }, SNAPPING_ANIMATION_DURATION + 100)
     return self
   }
 
