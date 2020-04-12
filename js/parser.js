@@ -190,7 +190,13 @@ const printSummary = dataset => {
 
   let topReasonHtml = topReasons.map(d => `
     <li class="reason__item">
-      <div class="reason__id">${d[0]} ${reasonListEn[d[0]]}:</div>
+      <div class="reason__select">
+        <input type="checkbox"/>
+      </div>
+      <div class="reason__label">
+        <span class="reason__id" style="background-color: ${getReasonGroup(d[0]).color2}">${d[0]}</span>
+        <span class="reason__text">${reasonListEn[d[0].slice(0, 4)]}</span>
+      </div>
       <div class="reason__count">${d[1]}</div>
     </li>
   `)
@@ -200,7 +206,7 @@ const printSummary = dataset => {
     <div>${violations} violations across ${locations} locations</div>
     <div><b>${getAddress(mostViolation.coords)}</b> has the most violation (${mostViolation.total})</div>
     <div>Top ${topNum} reasons</div>
-    <ul>${topReasonHtml}</ul>
+    <ul class="reason__list">${topReasonHtml}</ul>
   `
   document.getElementById('stats').innerHTML = template
 }

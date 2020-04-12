@@ -56,3 +56,36 @@ rect.selection {
   fill: #999;
   fill-opacity: 0.2
 }
+
+/* reason selector */
+.reason__select {
+  padding-top: 2px;
+}
+
+.reason__list {
+  margin: 0;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.reason__item {
+  display: grid;
+  grid-template-columns: 18px 1fr 32px;
+  margin: 8px 0;
+}
+
+.reason__label {
+  padding: 0 4px;
+}
+
+.reason__id {
+  display: inline-block;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #e5e5e5;
+}
+
+.reason__count {
+  text-align: right;
+  padding-top: 2px;
+}
