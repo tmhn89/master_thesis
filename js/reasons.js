@@ -1,5 +1,7 @@
 const reasonList = () => {
-  var data      = []
+  var data          = [],
+      filteredData  = [],
+      filter        = {}
 
   const self = wrapperId => {
     if (!wrapperId) {
@@ -7,7 +9,12 @@ const reasonList = () => {
       return
     }
 
-    self.printSummary(wrapperId, data)
+    self.printSummary(wrapperId, self.getFilteredData())
+    filterDispatch
+      .on('filterChanged.reasons', () => {
+        self.printSummary(wrapperId, self.getFilteredData())
+      })
+
     // add interaction
   }
 
@@ -40,7 +47,7 @@ const reasonList = () => {
 
     const topNum = 10
     let topReasons = d3
-      .rollups(dataset, v => v.length, d => d.reason)
+      .rollups(data, v => v.length, d => d.reason)
       .sort((a, b) => b[1] - a[1])
       .slice(0, topNum)
 
@@ -67,6 +74,20 @@ const reasonList = () => {
     document.getElementById(wrapperId).innerHTML = template
   }
 
+  /**
+   * Remove the reason filter to display all reasons for this component
+   */
+  self.getFilter = () => {
+    let filter = JSON.parse(JSON.stringify(globalFilter))
+    delete filter.reasons
+    return filter
+  }
+
+  self.getFilteredData = () => {
+    let filter = self.getFilter()
+    return filterData(data, filter)
+  }
+
   // data-setter
   self.data = value => {
     if (!value) { return data }
@@ -74,4 +95,5 @@ const reasonList = () => {
     return self
   }
 
+  return self
 }

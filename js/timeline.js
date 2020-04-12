@@ -1,13 +1,14 @@
 const timeline = () => {
-  var data      = [],
-      chartArea = null,
-      selected  = [parseTime(2019, 11), parseTime(2019, 11)],
-      width     = 800,
-      height    = 200,
-      margin    = { left: 64, top: 32 },
-      scale     = { x: null, y: null},
-      axis      = { x: null, y: null},
-      barWidth  = 10
+  var data          = [],
+      formattedData = [],
+      chartArea     = null,
+      selected      = [parseTime(2019, 11), parseTime(2019, 11)],
+      width         = 800,
+      height        = 200,
+      margin        = { left: 64, top: 32 },
+      scale         = { x: null, y: null },
+      axis          = { x: null, y: null },
+      barWidth      = 10
 
   const self = (wrapperId) => {
     if (!wrapperId) {
@@ -19,6 +20,9 @@ const timeline = () => {
     width = wrapper.node().getBoundingClientRect().width
     height = wrapper.node().getBoundingClientRect().height
 
+    // format initial data
+    // self.formatData()
+
     // init SVG
     d3.select('#psSvg').remove()
     var svg = wrapper
@@ -28,13 +32,13 @@ const timeline = () => {
       .attr('height', height)
 
     // @todo - recheck this when data from other year comes
-    const months = data.map(d => parseTime(d.year, d.month))
+    const months = formattedData.map(d => parseTime(d.year, d.month))
     // scales
     scale.x = d3.scaleTime()
       .domain([d3.timeMonth.offset(d3.min(months), -1), d3.timeMonth.offset(d3.max(months), +1)])
       .range([0, width - margin.left * 2])
     scale.y = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.violations)])
+      .domain([0, d3.max(formattedData, d => d.violations)])
       .range([height - margin.top * 2, 0])
       .nice()
     // axis
@@ -70,7 +74,7 @@ const timeline = () => {
 
   self.drawChart = () => {
     chartArea.selectAll()
-      .data(data)
+      .data(formattedData)
       .enter()
       .append('rect')
         .attr('x', d => scale.x(parseTime(d.year, d.month)))
@@ -187,7 +191,48 @@ const timeline = () => {
   self.data = value => {
     if (!value) { return data }
     data = value
+    self.formatData()
     return self
+  }
+
+  /**
+   * Remove the period filter to display all periods for this component
+   */
+  self.getFilter = () => {
+    let filter = JSON.parse(JSON.stringify(globalFilter))
+    delete filter.period
+    return filter
+  }
+
+  /**
+   * Get monthly summary of the whole dataset to draw the timeline
+   */
+  self.formatData = () => {
+    let filteredData = filterData(data, self.getFilter())
+
+    let groups = d3.group(filteredData, d => formatTime(parseTime(d.year, d.month)))
+    let result = []
+
+    Array.from(groups.keys())
+      .sort((a, b) => d3.timeFormat('%b %Y')(a) - d3.timeFormat('%b %Y')(b))
+      .forEach(period => {
+        let periodGroup = groups.get(period)
+        let violations = Array.from(periodGroup.values())
+          .reduce((a, b) => a + parseInt(b.occurrence), 0)
+
+        result.push({
+          year: periodGroup[0].year,
+          month: periodGroup[0].month,
+          locations: periodGroup.length,
+          violations: violations
+        })
+      })
+
+    formattedData = result
+  }
+
+  self.value = () => {
+    return selected
   }
 
   self.on = (eventName, callback) => {
@@ -200,10 +245,6 @@ const timeline = () => {
         break
     }
     return self
-  }
-
-  self.value = () => {
-    return selected
   }
 
   return self

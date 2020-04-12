@@ -101,6 +101,7 @@ const getMarkerColor = marker => {
  * @param {*} conditions month (array), reason (array)
  */
 const filterData = (data, conditions) => {
+  console.log('run data filtering')
   if (!conditions) { return data }
 
   let result = data
@@ -159,6 +160,7 @@ const printLegend = (content) => {
  * @param {*} dataset
  */
 const printSummary = dataset => {
+  console.log(dataset)
   if (dataset.length === 0) {
     document.getElementById('stats').innerHTML = '<div>No data available</div>'
     return
@@ -209,31 +211,4 @@ const printSummary = dataset => {
     <ul class="reason__list">${topReasonHtml}</ul>
   `
   document.getElementById('stats').innerHTML = template
-}
-
-/**
- * Get monthly summary of the whole dataset to draw the timeline
- */
-getDatasetMonthlySummary = dataset => {
-  // let groups = d3.group(dataset, d => d.month)
-  let groups = d3.group(dataset, d => formatTime(parseTime(d.year, d.month)))
-  let result = []
-
-  Array.from(groups.keys())
-    // .sort((a, b) => parseInt(a) - parseInt(b))
-    .sort((a, b) => d3.timeFormat('%b %Y')(a) - d3.timeFormat('%b %Y')(b))
-    .forEach(period => {
-      let periodGroup = groups.get(period)
-      let violations = Array.from(periodGroup.values())
-        .reduce((a, b) => a + parseInt(b.occurrence), 0)
-
-      result.push({
-        year: periodGroup[0].year,
-        month: periodGroup[0].month,
-        locations: periodGroup.length,
-        violations: violations
-      })
-    })
-
-  return result
 }
