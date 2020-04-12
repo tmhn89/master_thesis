@@ -11,7 +11,7 @@ var reasonSelector  = reasonList()
 
 var globalFilter = {
   period: [parseTime(2019, 11), parseTime(2019, 11)],
-  reason: null,
+  reason: [],
   bound: null
 }
 
@@ -26,8 +26,8 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
     periodSelector = periodSelector.data(data[2])
     periodSelector('periodSelector')
 
-    // reasonSelector = reasonSelector.data(data[2])
-    // reasonSelector('stats')
+    reasonSelector = reasonSelector.data(data[2])
+    reasonSelector('stats')
 
     // pass data to bubble map
     maps = maps.data(data[2])
@@ -37,9 +37,9 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
     filterDispatch.on('filter', data => {
       // update the filter, then trigger filter change event
       Object.assign(globalFilter, data)
-      // filteredData = filterData(allData, filter)
-
-      filterDispatch.call('filterChanged')
+      setTimeout(() => {
+        filterDispatch.call('filterChanged')
+      }, 100)
     })
   })
 

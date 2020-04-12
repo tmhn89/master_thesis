@@ -53,7 +53,7 @@ const bubbleMaps = () => {
       // self.drawRegionMap()
 
       // only redraw canvas on low zoom level when less than 3 months selected
-      let periodLength = d3.timeMonth.count(...filter.period) + 1  // months
+      let periodLength = d3.timeMonth.count(...self.getFilter().period) + 1  // months
       if (periodLength >= 3 && basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
         self.clear()
         return

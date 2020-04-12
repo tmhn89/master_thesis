@@ -66,10 +66,6 @@ const timeline = () => {
     // draw chart and add the brush
     self.drawChart()
     self.drawBrush()
-
-    // add event when value changed
-    // var changeEvent = new Event('changed')
-    // self.addEventListener('changed', e => console.log(e))
   }
 
   self.drawChart = () => {
@@ -199,7 +195,7 @@ const timeline = () => {
    * Remove the period filter to display all periods for this component
    */
   self.getFilter = () => {
-    let filter = JSON.parse(JSON.stringify(globalFilter))
+    let filter = Object.assign({}, globalFilter)
     delete filter.period
     return filter
   }

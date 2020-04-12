@@ -101,16 +101,18 @@ const getMarkerColor = marker => {
  * @param {*} conditions month (array), reason (array)
  */
 const filterData = (data, conditions) => {
-  console.log('run data filtering')
   if (!conditions) { return data }
 
   let result = data
   if (conditions.period) {
-    // result = data.filter(d => conditions.month.indexOf(parseInt(d.month)) > -1)
-    result = data.filter(d =>
+    result = result.filter(d =>
       d3.timeMonth.count(parseTime(d.year, d.month), conditions.period[0]) <= 0
       && d3.timeMonth.count(parseTime(d.year, d.month), conditions.period[1]) >= 0
     )
+  }
+
+  if (conditions.reason && conditions.reason.length > 0) {
+    result = result.filter(d => conditions.reason.indexOf(d.reason) > -1)
   }
 
   // continue writing other conditions here
@@ -153,62 +155,4 @@ const printLegend = (content) => {
   `
 
   legendEl.innerHTML = template
-}
-
-/**
- * Get the stats of filtered dataset
- * @param {*} dataset
- */
-const printSummary = dataset => {
-  console.log(dataset)
-  if (dataset.length === 0) {
-    document.getElementById('stats').innerHTML = '<div>No data available</div>'
-    return
-  }
-
-  // generate summary
-  const violations = dataset.reduce(
-    (total, current) => total + parseInt(current.occurrence),
-    0
-  )
-
-  const locations = [...new Set(dataset.map(d => d.coords))].length
-
-  const locationGroups = d3.group(dataset, d => d.coords)
-  const violationsByLocation = Array.from(locationGroups.entries())
-    .map(row => {
-      return {
-        coords: row[0],
-        total: d3.sum(row[1], d => d.occurrence)
-       }
-     })
-  const mostViolation = d3.greatest(violationsByLocation, (a,b) => a.total - b.total)
-
-  const topNum = 10
-  let topReasons = d3
-    .rollups(dataset, v => v.length, d => d.reason)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, topNum)
-
-  let topReasonHtml = topReasons.map(d => `
-    <li class="reason__item">
-      <div class="reason__select">
-        <input type="checkbox"/>
-      </div>
-      <div class="reason__label">
-        <span class="reason__id" style="background-color: ${getReasonGroup(d[0]).color2}">${d[0]}</span>
-        <span class="reason__text">${reasonListEn[d[0].slice(0, 4)]}</span>
-      </div>
-      <div class="reason__count">${d[1]}</div>
-    </li>
-  `)
-    .join('')
-
-  let template = `
-    <div>${violations} violations across ${locations} locations</div>
-    <div><b>${getAddress(mostViolation.coords)}</b> has the most violation (${mostViolation.total})</div>
-    <div>Top ${topNum} reasons</div>
-    <ul class="reason__list">${topReasonHtml}</ul>
-  `
-  document.getElementById('stats').innerHTML = template
 }
