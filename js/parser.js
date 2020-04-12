@@ -100,19 +100,19 @@ const getMarkerColor = marker => {
  * @param {*} data array of {coords, month, reason, occurrence}
  * @param {*} conditions month (array), reason (array)
  */
-const filterData = (data, conditions) => {
-  if (!conditions) { return data }
+const filterData = (data, filter) => {
+  if (!filter) { return data }
 
   let result = data
-  if (conditions.period) {
+  if (filter.period) {
     result = result.filter(d =>
-      d3.timeMonth.count(parseTime(d.year, d.month), conditions.period[0]) <= 0
-      && d3.timeMonth.count(parseTime(d.year, d.month), conditions.period[1]) >= 0
+      d3.timeMonth.count(parseTime(d.year, d.month), filter.period[0]) <= 0
+      && d3.timeMonth.count(parseTime(d.year, d.month), filter.period[1]) >= 0
     )
   }
 
-  if (conditions.reason && conditions.reason.length > 0) {
-    result = result.filter(d => conditions.reason.indexOf(d.reason) > -1)
+  if (filter.reasons && filter.reasons.length > 0) {
+    result = result.filter(d => filter.reasons.indexOf(d.reason) > -1)
   }
 
   // continue writing other conditions here

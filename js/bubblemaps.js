@@ -6,7 +6,8 @@ const bubbleMaps = () => {
       basemap           = null,
       svg               = null,
       data              = null,
-      formattedData     = []
+      allMarkers        = [],
+      visibleMarkers    = []
 
   // constructor
   const self = (wrapperId) => {
@@ -39,7 +40,7 @@ const bubbleMaps = () => {
 
       // start listen to global filter
       filterDispatch
-        .on('filterChanged', () => {
+        .on('filterChanged.maps', () => {
           self.formatData()
           self.draw()
         })
@@ -50,8 +51,6 @@ const bubbleMaps = () => {
     })
 
     basemap.on('move', () => {
-      // self.drawRegionMap()
-
       // only redraw canvas on low zoom level when less than 3 months selected
       let periodLength = d3.timeMonth.count(...self.getFilter().period) + 1  // months
       if (periodLength >= 3 && basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
@@ -60,7 +59,7 @@ const bubbleMaps = () => {
       }
       // only draw on canvas when map move
       d3.select('#d3Svg').remove()
-      self.drawCanvas(formattedData)
+      self.drawCanvas(allMarkers)
     })
 
     basemap.on('resize', () => {
@@ -74,10 +73,10 @@ const bubbleMaps = () => {
   self.draw = () => {
     showLoader(true)
     self.drawLegend()
-    self.drawCanvas(formattedData)
+    self.drawCanvas(allMarkers)
     // draw only markers visible on map when zoom level is greater than 14
     if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
-      self.drawSvg(formattedData)
+      self.drawSvg(visibleMarkers)
     }
     showLoader(false)
   }
@@ -249,12 +248,13 @@ const bubbleMaps = () => {
 
   // this component takes all filters, but only care about markers within map boundary
   self.formatData = () => {
-    let allMarkers = filterData(data, self.getFilter())
+    let filteredData = filterData(data, self.getFilter())
+    allMarkers = groupByOccurrence(filteredData)
 
     if (!basemap) { return allMarkers }
 
-    formattedData = groupByOccurrence(
-      allMarkers
+    visibleMarkers = groupByOccurrence(
+      filteredData
         .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))
     )
   }

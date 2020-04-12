@@ -11,7 +11,7 @@ var reasonSelector  = reasonList()
 
 var globalFilter = {
   period: [parseTime(2019, 11), parseTime(2019, 11)],
-  reason: [],
+  reasons: [],
   bound: null
 }
 

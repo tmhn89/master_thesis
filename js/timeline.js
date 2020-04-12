@@ -1,5 +1,6 @@
 const timeline = () => {
-  var data          = [],
+  var wrapper       = null,
+      data          = [],
       formattedData = [],
       chartArea     = null,
       selected      = [parseTime(2019, 11), parseTime(2019, 11)],
@@ -16,13 +17,25 @@ const timeline = () => {
       return
     }
     // set wrapper size
-    const wrapper = d3.select(`#${wrapperId}`)
+    wrapper = d3.select(`#${wrapperId}`)
     width = wrapper.node().getBoundingClientRect().width
     height = wrapper.node().getBoundingClientRect().height
 
-    // format initial data
-    // self.formatData()
+    self.draw()
+    filterDispatch
+      .on('filterChanged.period', () => {
+        self.formatData()
+        self.draw()
+      })
+  }
 
+  self.draw = () => {
+    self.setupChart()
+    self.drawChart()
+    self.drawBrush()
+  }
+
+  self.setupChart = () => {
     // init SVG
     d3.select('#psSvg').remove()
     var svg = wrapper
@@ -31,14 +44,13 @@ const timeline = () => {
       .attr('width', width)
       .attr('height', height)
 
-    // @todo - recheck this when data from other year comes
     const months = formattedData.map(d => parseTime(d.year, d.month))
     // scales
     scale.x = d3.scaleTime()
       .domain([d3.timeMonth.offset(d3.min(months), -1), d3.timeMonth.offset(d3.max(months), +1)])
       .range([0, width - margin.left * 2])
     scale.y = d3.scaleLinear()
-      .domain([0, d3.max(formattedData, d => d.violations)])
+      .domain([0, d3.max(formattedData, d => d.violations)]) // 20000 for multiple reasons, max 2000 for single reason
       .range([height - margin.top * 2, 0])
       .nice()
     // axis
@@ -62,10 +74,6 @@ const timeline = () => {
     chartArea.append('g')
       .attr('class', 'axis axis--y')
       .call(axis.y)
-
-    // draw chart and add the brush
-    self.drawChart()
-    self.drawBrush()
   }
 
   self.drawChart = () => {

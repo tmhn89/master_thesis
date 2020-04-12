@@ -81,7 +81,7 @@ const reasonList = () => {
     let selectedReasonBoxes = d3
       .selectAll('.reason__checkbox')
       .nodes()
-      .filter(d => { return globalFilter.reason.indexOf(d.getAttribute('data-id')) > -1 })
+      .filter(d => { return globalFilter.reasons.indexOf(d.getAttribute('data-id')) > -1 })
 
     selectedReasonBoxes.forEach(d => {
       d3.select(d).property('checked', true)
@@ -96,7 +96,7 @@ const reasonList = () => {
           .nodes()
           .map(d => d.getAttribute('data-id'))
 
-        filterDispatch.call('filter', this, { reason: checkedReasons })
+        filterDispatch.call('filter', this, { reasons: checkedReasons })
       })
   }
 
@@ -105,7 +105,7 @@ const reasonList = () => {
    */
   self.getFilter = () => {
     let filter = Object.assign({}, globalFilter)
-    delete filter.reason
+    delete filter.reasons
     return filter
   }
 
