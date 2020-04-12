@@ -62,9 +62,8 @@ body {
   z-index: 2;
 }
 
-.chart__line {
-  fill: none;
-  stroke: #ed3700;
+.timeline__detail {
+  z-index: 2;
 }
 
 rect.selection {
