@@ -138,7 +138,7 @@ const formatTime = date => {
 
 
 const printLegend = (content) => {
-  let legendEl = document.getElementById('legend')
+  let legendEl = document.getElementById('locationInfo')
 
   let reasonHtml = Object.keys(content.reasons).map(id => `
     <li class="reason__item">

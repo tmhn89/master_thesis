@@ -5,17 +5,20 @@ const SNAPPING_ANIMATION_DURATION = 300
 var addressBook   = []
 var reasonGroups  = []
 
+var filterDispatch = d3.dispatch('filter', 'filterChanged')
+var infoDispatch = d3.dispatch('locationSelected')
+
 var maps            = bubbleMaps()
 var periodSelector  = timeline()
 var reasonSelector  = reasonList()
+var infoBox = locationInfo()
+infoBox('locationInfo')
 
 var globalFilter = {
   period: [parseTime(2019, 11), parseTime(2019, 11)],
   reasons: [],
   bound: null
 }
-
-var filterDispatch = d3.dispatch('filter', 'filterChanged')
 
 Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
   .then(data => {
@@ -34,6 +37,7 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
     // render the viz
     maps('bubblemaps')
 
+
     filterDispatch.on('filter', data => {
       showLoader(true) // loader will be hidden when drawing complete
 
@@ -42,6 +46,10 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
       setTimeout(() => {
         filterDispatch.call('filterChanged')
       }, 100)
+    })
+
+    infoDispatch.on('locationSelected', data => {
+      infoBox = infoBox.data(data)
     })
   })
 
