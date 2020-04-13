@@ -73,6 +73,15 @@ const bubbleMaps = () => {
       height = basemap.getContainer().clientHeight
       self.draw()
     })
+
+    basemap.on('click', (e) => {
+      if (basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
+        basemap.flyTo({
+          center: e.lngLat,
+          zoom: ZOOM_INTERACTION_LEVEL
+        })
+      }
+    })
   }
 
   self.draw = () => {
