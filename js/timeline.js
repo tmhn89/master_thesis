@@ -10,7 +10,6 @@ const timeline = () => {
       margin        = { left: 64, top: 32 },
       scale         = { x: null, y: null },
       axis          = { x: null, y: null },
-      d3Area        = null,
       barWidth      = 16
 
   const self = (wrapperId) => {

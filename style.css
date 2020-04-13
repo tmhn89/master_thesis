@@ -72,6 +72,10 @@ rect.selection {
 }
 
 /* reason selector */
+#stats {
+  overflow-y: auto;
+}
+
 .reason__select {
   padding-top: 2px;
 }
@@ -80,6 +84,8 @@ rect.selection {
   margin: 0;
   padding: 0 12px;
   font-size: 13px;
+  max-height: calc(100% - 60px);
+  overflow-y: auto;
 }
 
 .reason__item {
@@ -102,4 +108,12 @@ rect.selection {
 .reason__count {
   text-align: right;
   padding-top: 2px;
+}
+
+.reason__button {
+  outline: none;
+}
+
+.reason__button--active {
+  background-color: #59c154;
 }

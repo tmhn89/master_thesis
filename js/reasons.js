@@ -1,7 +1,8 @@
 const reasonList = () => {
-  var data           = [],
+  var wrapper        = null,
+      data           = [],
       formattedData  = [],
-      selected       = []
+      topReasonNum   = 10
 
   const self = wrapperId => {
     if (!wrapperId) {
@@ -9,11 +10,13 @@ const reasonList = () => {
       return
     }
 
-    self.printSummary(wrapperId, formattedData)
+    wrapper = document.getElementById(wrapperId)
+
+    self.printSummary(wrapper, formattedData)
     filterDispatch
       .on('filterChanged.reasons', () => {
         self.formatData()
-        self.printSummary(wrapperId, formattedData)
+        self.printSummary(wrapper, formattedData)
       })
 
     // add interaction
@@ -22,9 +25,9 @@ const reasonList = () => {
   /**
    * Get the stats of filtered dataset
    */
-  self.printSummary = (wrapperId, reasonData) => {
+  self.printSummary = (wrapper, reasonData) => {
     if (reasonData.length === 0) {
-      document.getElementById(wrapperId).innerHTML = '<div>No data available</div>'
+      wrapper.innerHTML = '<div>No data available</div>'
       return
     }
 
@@ -46,11 +49,13 @@ const reasonList = () => {
       })
     const mostViolation = d3.greatest(violationsByLocation, (a,b) => a.total - b.total)
 
-    const topNum = 10
     let topReasons = d3
       .rollups(reasonData, v => v.length, d => d.reason)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, topNum)
+
+    if (topReasonNum > 0) {
+      topReasons = topReasons.slice(0, topReasonNum)
+    }
 
     let topReasonHtml = topReasons.map(d => `
       <li class="reason__item">
@@ -69,10 +74,14 @@ const reasonList = () => {
     let template = `
       <div>${violations} violations across ${locations} locations</div>
       <div><b>${getAddress(mostViolation.coords)}</b> has the most violation (${mostViolation.total})</div>
-      <div>Top ${topNum} reasons</div>
+      <div>Reasons:
+        <button class="reason__button ${topReasonNum === 10 ? 'reason__button--active' : ''}" data-show="10">Top 10</button>
+        <button class="reason__button ${topReasonNum === 25 ? 'reason__button--active' : ''}" data-show="25">Top 25</button>
+        <button class="reason__button ${topReasonNum === 0 ? 'reason__button--active' : ''}" data-show="0">All</button>
+      </div>
       <ul class="reason__list">${topReasonHtml}</ul>
     `
-    document.getElementById(wrapperId).innerHTML = template
+    wrapper.innerHTML = template
     self.setInteraction()
   }
 
@@ -97,6 +106,23 @@ const reasonList = () => {
           .map(d => d.getAttribute('data-id'))
 
         filterDispatch.call('filter', this, { reasons: checkedReasons })
+      })
+
+    // top reasons button
+    d3.selectAll('.reason__button')
+      .on('click', () => {
+        // remove active state of other button
+        d3.selectAll('.reason__button')
+          .nodes()
+          .forEach(el => el.classList.remove('reason__button--active'))
+        // add active state for clicked button
+        d3.event
+          .target
+          .classList
+          .add('reason__button--active')
+        // update control variable
+        topReasonNum = parseInt(d3.event.target.getAttribute('data-show'))
+        self.printSummary(wrapper, formattedData)
       })
   }
 
