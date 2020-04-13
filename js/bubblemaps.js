@@ -27,7 +27,7 @@ const bubbleMaps = () => {
       container: wrapperId, // container id
       style: 'mapbox://styles/mapbox/light-v10',
       center: center,
-      zoom: 12,
+      zoom: 14,
       minZoom: 11
     })
 
@@ -140,7 +140,8 @@ const bubbleMaps = () => {
         .attr('fill-opacity', 0.5)
         .attr('r', d => getMarkerRadius(d.total, basemap.getZoom(), filter.period))
         .attr('cursor', 'pointer')
-      .on('click', d => printLegend(d))
+      // .on('click', d => printLegend(d))
+      .on('click', d => { infoDispatch.call('locationSelected', this, d) })
       .on('mouseover', function (d) {
         d3.select(this)
           .style('fill', d => getMarkerColor(d))
