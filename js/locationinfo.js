@@ -82,7 +82,7 @@ const locationInfo = () => {
             .map(reasonId => getReasonGroup(reasonId).color2)
           return chroma.average(colors, 'rgb')
         })
-        .attr('fill-opacity', '0.5')
+        .attr('fill-opacity', '1')
         .transition()
           .attr('width', d => scale.x(data.reasons[d]))
         .duration(750)

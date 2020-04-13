@@ -6,6 +6,7 @@ const bubbleMaps = () => {
       basemap           = null,
       svg               = null,
       data              = null,
+      filteredData      = null,
       allMarkers        = [],
       visibleMarkers    = []
 
@@ -27,7 +28,7 @@ const bubbleMaps = () => {
       container: wrapperId, // container id
       style: 'mapbox://styles/mapbox/light-v10',
       center: center,
-      zoom: 14,
+      zoom: 12,
       minZoom: 11
     })
 
@@ -60,6 +61,10 @@ const bubbleMaps = () => {
       // only draw on canvas when map move
       d3.select('#d3Svg').remove()
       self.drawCanvas(allMarkers)
+    })
+
+    basemap.on('moveend', () => {
+      self.getVisibleMarkers()
     })
 
     basemap.on('resize', () => {
@@ -249,11 +254,14 @@ const bubbleMaps = () => {
 
   // this component takes all filters, but only care about markers within map boundary
   self.formatData = () => {
-    let filteredData = filterData(data, self.getFilter())
+    filteredData = filterData(data, self.getFilter())
     allMarkers = groupByOccurrence(filteredData)
 
     if (!basemap) { return allMarkers }
+    self.getVisibleMarkers()
+  }
 
+  self.getVisibleMarkers = () => {
     visibleMarkers = groupByOccurrence(
       filteredData
         .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))

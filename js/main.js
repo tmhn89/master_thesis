@@ -34,9 +34,7 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
 
     // pass data to bubble map
     maps = maps.data(data[2])
-    // render the viz
     maps('bubblemaps')
-
 
     filterDispatch.on('filter', data => {
       showLoader(true) // loader will be hidden when drawing complete
