@@ -35,6 +35,8 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
     maps('bubblemaps')
 
     filterDispatch.on('filter', data => {
+      showLoader(true) // loader will be hidden when drawing complete
+
       // update the filter, then trigger filter change event
       Object.assign(globalFilter, data)
       setTimeout(() => {

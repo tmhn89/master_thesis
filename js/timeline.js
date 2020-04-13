@@ -56,8 +56,8 @@ const timeline = () => {
     const months = formattedData.map(d => parseTime(d.year, d.month))
     // scales
     scale.x = d3.scaleTime()
-      .domain(d3.extent(months))
-      // .domain([d3.timeMonth.offset(d3.min(months), -1), d3.timeMonth.offset(d3.max(months), +1)])
+      // .domain(d3.extent(months))
+      .domain([d3.timeMonth.offset(d3.min(months), -1), d3.timeMonth.offset(d3.max(months), +1)])
       .range([0, width - margin.left * 2])
     scale.y = d3.scaleLinear()
       .domain([0, d3.max(formattedData, d => d.violations)]) // 20000 for multiple reasons, max 2000 for single reason
@@ -83,11 +83,11 @@ const timeline = () => {
       .attr('class', 'axis axis--y')
       .call(axis.y)
 
-    d3Area = d3.area()
-      .x(d => scale.x(parseTime(d.year, d.month)))
-      .y0(scale.y(0))
-      .y1(d => scale.y(d.violations))
-      .curve(d3.curveMonotoneX)
+    // d3Area = d3.area()
+    //   .x(d => scale.x(parseTime(d.year, d.month)))
+    //   .y0(scale.y(0))
+    //   .y1(d => scale.y(d.violations))
+    //   .curve(d3.curveMonotoneX)
   }
 
   self.drawChart = () => {
@@ -96,44 +96,45 @@ const timeline = () => {
       return
     }
 
-    // chartArea.selectAll('rect')
-    //   .data(formattedData)
-    //   .enter()
-    //   .append('rect')
-    //     .attr('x', d => scale.x(parseTime(d.year, d.month)))
-    //     .attr('y', d => scale.y(d.violations) + margin.top * 2)
-    //     .attr('width', barWidth)
-    //     .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
-    //     .attr('fill', '#e67e22')
-    //     .attr('fill-opacity', '0.7')
-    //     .attr('transform', `translate(${-barWidth / 2}, ${-margin.top * 2})`)
+    chartArea.selectAll('rect')
+      .data(formattedData)
+      .enter()
+      .append('rect')
+        .attr('x', d => scale.x(parseTime(d.year, d.month)))
+        .attr('y', d => scale.y(d.violations) + margin.top * 2)
+        .attr('width', barWidth)
+        .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
+        .attr('fill', '#999')
+        .attr('fill-opacity', '0.5')
+        .attr('transform', `translate(${-barWidth / 2}, ${-margin.top * 2})`)
+        .on('mouseover', d => console.log(d, d3.event))
 
-    chartArea.append('path')
-      .datum(formattedData)
-      .attr('fill', '#999')
-      .attr('fill-opacity', 0.2)
-      .attr('stroke', '#999')
-      .attr('stroke-width', 2)
-      .attr('d', d3Area)
+    // chartArea.append('path')
+    //   .datum(formattedData)
+    //   .attr('fill', '#999')
+    //   .attr('fill-opacity', 0.2)
+    //   .attr('stroke', '#999')
+    //   .attr('stroke-width', 2)
+    //   .attr('d', d3Area)
 
     chartDrawn = true
   }
 
   self.updateChart = () => {
-    // chartArea.selectAll('rect')
-    //   .data(formattedData)
-    //   .transition()
-    //     .attr('y', d => scale.y(d.violations) + margin.top * 2)
-    //     .attr('height', d => { console.log(d); return height - scale.y(d.violations) - margin.top * 2 })
-    //   .duration(1000)
-    //   .delay(1000)
-
-    chartArea.select('path')
-      .datum(formattedData)
+    chartArea.selectAll('rect')
+      .data(formattedData)
       .transition()
-        .attr('d', d3Area)
+        .attr('y', d => scale.y(d.violations) + margin.top * 2)
+        .attr('height', d => height - scale.y(d.violations) - margin.top * 2 )
       .duration(1000)
       .delay(750)
+
+    // chartArea.select('path')
+    //   .datum(formattedData)
+    //   .transition()
+    //     .attr('d', d3Area)
+    //   .duration(1000)
+    //   .delay(750)
 
     // chartArea.selectAll('.timeline__detail')
     //   .data(formattedData)
