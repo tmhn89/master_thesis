@@ -3,12 +3,14 @@ const timeline = () => {
       data          = [],
       formattedData = [],
       chartArea     = null,
+      chartDrawn    = false,
       selected      = [parseTime(2019, 11), parseTime(2019, 11)],
       width         = 800,
       height        = 200,
       margin        = { left: 64, top: 32 },
       scale         = { x: null, y: null },
       axis          = { x: null, y: null },
+      d3Area        = null,
       barWidth      = 16
 
   const self = (wrapperId) => {
@@ -37,12 +39,19 @@ const timeline = () => {
 
   self.setupChart = () => {
     // init SVG
-    d3.select('#psSvg').remove()
-    var svg = wrapper
-      .append('svg')
-      .attr('id', 'psSvg')
-      .attr('width', width)
-      .attr('height', height)
+    if (!chartDrawn) {
+      // d3.select('#psSvg').remove()
+      wrapper
+        .append('svg')
+        .attr('id', 'psSvg')
+        .attr('width', width)
+        .attr('height', height)
+
+      // chart area to draw chart and brush on
+      chartArea = d3.select('#psSvg')
+        .append('g')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+    }
 
     const months = formattedData.map(d => parseTime(d.year, d.month))
     // scales
@@ -60,10 +69,7 @@ const timeline = () => {
       .tickFormat(d3.timeFormat('%b %Y'))
     axis.y = d3.axisLeft(scale.y)
 
-    // chart area to draw chart and brush on
-    chartArea = svg.append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`)
-
+    d3.select('.axis.axis--x').remove()
     chartArea.append('g')
       .attr('class', 'axis axis--x')
       .attr('transform', `translate(0, ${height - margin.top * 2})`)
@@ -72,53 +78,75 @@ const timeline = () => {
         .attr('dy', '15')
         .attr('transform', 'rotate(25)')
 
+    d3.select('.axis.axis--y').remove()
     chartArea.append('g')
       .attr('class', 'axis axis--y')
       .call(axis.y)
+
+    d3Area = d3.area()
+      .x(d => scale.x(parseTime(d.year, d.month)))
+      .y0(scale.y(0))
+      .y1(d => scale.y(d.violations))
+      .curve(d3.curveMonotoneX)
   }
 
   self.drawChart = () => {
-    // chartArea.selectAll()
+    if (chartDrawn) {
+      self.updateChart()
+      return
+    }
+
+    // chartArea.selectAll('rect')
     //   .data(formattedData)
     //   .enter()
     //   .append('rect')
     //     .attr('x', d => scale.x(parseTime(d.year, d.month)))
     //     .attr('y', d => scale.y(d.violations) + margin.top * 2)
-    //     .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
     //     .attr('width', barWidth)
+    //     .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
     //     .attr('fill', '#e67e22')
     //     .attr('fill-opacity', '0.7')
     //     .attr('transform', `translate(${-barWidth / 2}, ${-margin.top * 2})`)
 
-    var area = d3.area()
-      .x(d => scale.x(parseTime(d.year, d.month)))
-      .y0(scale.y(0))
-      .y1(scale.y(0))
-      .curve(d3.curveMonotoneX)
-
     chartArea.append('path')
       .datum(formattedData)
-      .attr("fill", "#cce5df")
-      .attr("stroke", "#69b3a2")
-      .attr("stroke-width", 2)
-      .attr('d', area)
-      .transition()
-        .attr('d', area
-          .y1(d => scale.y(d.violations)))
-      .duration(1000)
+      .attr('fill', '#999')
+      .attr('fill-opacity', 0.2)
+      .attr('stroke', '#999')
+      .attr('stroke-width', 2)
+      .attr('d', d3Area)
 
-    chartArea.selectAll('.timeline__detail')
-      .data(formattedData)
-      .enter()
-      .append('circle')
-        .attr('class', 'timeline__detail')
-        .attr('fill', 'green')
-        .attr('r', 4)
-        .attr('cx', d => scale.x(parseTime(d.year, d.month)))
-        .attr('cy', scale.y(0))
+    chartDrawn = true
+  }
+
+  self.updateChart = () => {
+    // chartArea.selectAll('rect')
+    //   .data(formattedData)
+    //   .transition()
+    //     .attr('y', d => scale.y(d.violations) + margin.top * 2)
+    //     .attr('height', d => { console.log(d); return height - scale.y(d.violations) - margin.top * 2 })
+    //   .duration(1000)
+    //   .delay(1000)
+
+    chartArea.select('path')
+      .datum(formattedData)
       .transition()
-        .attr('cy', d => scale.y(d.violations))
-        .duration(1000)
+        .attr('d', d3Area)
+      .duration(1000)
+      .delay(750)
+
+    // chartArea.selectAll('.timeline__detail')
+    //   .data(formattedData)
+    //   .enter()
+    //   .append('circle')
+    //     .attr('class', 'timeline__detail')
+    //     .attr('fill', 'green')
+    //     .attr('r', 4)
+    //     .attr('cx', d => scale.x(parseTime(d.year, d.month)))
+    //     .attr('cy', scale.y(0))
+    //   .transition()
+    //     .attr('cy', d => scale.y(d.violations))
+    //     .duration(1000)
   }
 
   self.drawBrush = () => {
@@ -156,7 +184,9 @@ const timeline = () => {
       })
 
     // append brush to chart area
+    d3.selectAll('.timeline__brush').remove()
     chartArea.append('g')
+      .attr('class', 'timeline__brush')
       .call(brush)
       .call(brush.move,
         [
@@ -199,8 +229,8 @@ const timeline = () => {
         enter => enter.append('path')
           .attr('class', 'brush__handle')
           .attr('fill', '#d4d4d4')
-          .attr('fill-opacity', 0.4)
-          .attr('stroke', '#aaa')
+          .attr('fill-opacity', 0.2)
+          .attr('stroke', '#59c154')
           .attr('stroke-width', 1)
           .attr('cursor', 'ew-resize')
           .attr('d', brushResizePath)
