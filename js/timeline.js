@@ -1,13 +1,16 @@
 const timeline = () => {
-  var data      = [],
-      chartArea = null,
-      selected  = [parseTime(2019, 11), parseTime(2019, 11)],
-      width     = 800,
-      height    = 200,
-      margin    = { left: 64, top: 32 },
-      scale     = { x: null, y: null},
-      axis      = { x: null, y: null},
-      barWidth  = 10
+  var wrapper       = null,
+      data          = [],
+      formattedData = [],
+      chartArea     = null,
+      chartDrawn    = false,
+      selected      = [parseTime(2019, 11), parseTime(2019, 11)],
+      width         = 800,
+      height        = 200,
+      margin        = { left: 64, top: 32 },
+      scale         = { x: null, y: null },
+      axis          = { x: null, y: null },
+      barWidth      = 16
 
   const self = (wrapperId) => {
     if (!wrapperId) {
@@ -15,26 +18,48 @@ const timeline = () => {
       return
     }
     // set wrapper size
-    const wrapper = d3.select(`#${wrapperId}`)
+    wrapper = d3.select(`#${wrapperId}`)
     width = wrapper.node().getBoundingClientRect().width
     height = wrapper.node().getBoundingClientRect().height
 
-    // init SVG
-    d3.select('#psSvg').remove()
-    var svg = wrapper
-      .append('svg')
-      .attr('id', 'psSvg')
-      .attr('width', width)
-      .attr('height', height)
+    self.draw()
+    filterDispatch
+      .on('filterChanged.period', () => {
+        self.formatData()
+        self.draw()
+      })
+  }
 
-    // @todo - recheck this when data from other year comes
-    const months = data.map(d => parseTime(d.year, d.month))
+  self.draw = () => {
+    self.setupChart()
+    self.drawChart()
+    self.drawBrush()
+  }
+
+  self.setupChart = () => {
+    // init SVG
+    if (!chartDrawn) {
+      // d3.select('#psSvg').remove()
+      wrapper
+        .append('svg')
+        .attr('id', 'psSvg')
+        .attr('width', width)
+        .attr('height', height)
+
+      // chart area to draw chart and brush on
+      chartArea = d3.select('#psSvg')
+        .append('g')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+    }
+
+    const months = formattedData.map(d => parseTime(d.year, d.month))
     // scales
     scale.x = d3.scaleTime()
+      // .domain(d3.extent(months))
       .domain([d3.timeMonth.offset(d3.min(months), -1), d3.timeMonth.offset(d3.max(months), +1)])
       .range([0, width - margin.left * 2])
     scale.y = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.violations)])
+      .domain([0, d3.max(formattedData, d => d.violations)]) // 20000 for multiple reasons, max 2000 for single reason
       .range([height - margin.top * 2, 0])
       .nice()
     // axis
@@ -43,10 +68,7 @@ const timeline = () => {
       .tickFormat(d3.timeFormat('%b %Y'))
     axis.y = d3.axisLeft(scale.y)
 
-    // chart area to draw chart and brush on
-    chartArea = svg.append('g')
-      .attr('transform', `translate(${margin.left}, ${margin.top})`)
-
+    d3.select('.axis.axis--x').remove()
     chartArea.append('g')
       .attr('class', 'axis axis--x')
       .attr('transform', `translate(0, ${height - margin.top * 2})`)
@@ -55,41 +77,76 @@ const timeline = () => {
         .attr('dy', '15')
         .attr('transform', 'rotate(25)')
 
+    d3.select('.axis.axis--y').remove()
     chartArea.append('g')
       .attr('class', 'axis axis--y')
       .call(axis.y)
 
-    // draw chart and add the brush
-    self.drawChart()
-    self.drawBrush()
-
-    // add event when value changed
-    // var changeEvent = new Event('changed')
-    // self.addEventListener('changed', e => console.log(e))
+    // d3Area = d3.area()
+    //   .x(d => scale.x(parseTime(d.year, d.month)))
+    //   .y0(scale.y(0))
+    //   .y1(d => scale.y(d.violations))
+    //   .curve(d3.curveMonotoneX)
   }
 
   self.drawChart = () => {
-    chartArea.selectAll()
-      .data(data)
+    if (chartDrawn) {
+      self.updateChart()
+      return
+    }
+
+    chartArea.selectAll('rect')
+      .data(formattedData)
       .enter()
       .append('rect')
         .attr('x', d => scale.x(parseTime(d.year, d.month)))
         .attr('y', d => scale.y(d.violations) + margin.top * 2)
-        .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
         .attr('width', barWidth)
-        .attr('fill', '#e67e22')
-        .attr('fill-opacity', '0.7')
+        .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
+        .attr('fill', '#999')
+        .attr('fill-opacity', '0.5')
         .attr('transform', `translate(${-barWidth / 2}, ${-margin.top * 2})`)
-
-    // var line = d3.line()
-    //   .x(d => scale.x(d.month))
-    //   .y(d => scale.y(d.violations))
-    //   .curve(d3.curveMonotoneX)
+        .on('mouseover', d => console.log(d, d3.event))
 
     // chartArea.append('path')
-    //   .datum(data)
-    //   .attr('class', 'chart__line')
-    //   .attr('d', line)
+    //   .datum(formattedData)
+    //   .attr('fill', '#999')
+    //   .attr('fill-opacity', 0.2)
+    //   .attr('stroke', '#999')
+    //   .attr('stroke-width', 2)
+    //   .attr('d', d3Area)
+
+    chartDrawn = true
+  }
+
+  self.updateChart = () => {
+    chartArea.selectAll('rect')
+      .data(formattedData)
+      .transition()
+        .attr('y', d => scale.y(d.violations) + margin.top * 2)
+        .attr('height', d => height - scale.y(d.violations) - margin.top * 2 )
+      .duration(1000)
+      .delay(750)
+
+    // chartArea.select('path')
+    //   .datum(formattedData)
+    //   .transition()
+    //     .attr('d', d3Area)
+    //   .duration(1000)
+    //   .delay(750)
+
+    // chartArea.selectAll('.timeline__detail')
+    //   .data(formattedData)
+    //   .enter()
+    //   .append('circle')
+    //     .attr('class', 'timeline__detail')
+    //     .attr('fill', 'green')
+    //     .attr('r', 4)
+    //     .attr('cx', d => scale.x(parseTime(d.year, d.month)))
+    //     .attr('cy', scale.y(0))
+    //   .transition()
+    //     .attr('cy', d => scale.y(d.violations))
+    //     .duration(1000)
   }
 
   self.drawBrush = () => {
@@ -102,6 +159,7 @@ const timeline = () => {
         const selection = d3.event.selection
         // update bursh data
         d3.select(this).call(self.brushHandle, selection)
+        showLoader(true)
       })
       .on('end', function () {
         // snap the selection to month position after brush end
@@ -117,17 +175,18 @@ const timeline = () => {
 
         d3.select(this)
           .transition()
-          .duration(SNAPPING_ANIMATION_DURATION)
+          // .duration(SNAPPING_ANIMATION_DURATION)
+          .on('end', () => { filterDispatch.call('filter', this, { period: selected }) })
           .call(d3.event.target.move, [
             scale.x(selected[0]) - barWidth / 2,
             scale.x(selected[1]) + barWidth / 2
           ])
-
-        d3.select('#psSvg').dispatch('changed', { detail: { period: selected }})
       })
 
     // append brush to chart area
+    d3.selectAll('.timeline__brush').remove()
     chartArea.append('g')
+      .attr('class', 'timeline__brush')
       .call(brush)
       .call(brush.move,
         [
@@ -170,8 +229,8 @@ const timeline = () => {
         enter => enter.append('path')
           .attr('class', 'brush__handle')
           .attr('fill', '#d4d4d4')
-          .attr('fill-opacity', 0.4)
-          .attr('stroke', '#aaa')
+          .attr('fill-opacity', 0.2)
+          .attr('stroke', '#59c154')
           .attr('stroke-width', 1)
           .attr('cursor', 'ew-resize')
           .attr('d', brushResizePath)
@@ -187,7 +246,49 @@ const timeline = () => {
   self.data = value => {
     if (!value) { return data }
     data = value
+    self.formatData()
     return self
+  }
+
+  /**
+   * Remove the period filter to display all periods for this component
+   */
+  self.getFilter = () => {
+    let filter = Object.assign({}, globalFilter)
+    delete filter.period
+    return filter
+  }
+
+  /**
+   * Get monthly summary of the whole dataset to draw the timeline
+   */
+  self.formatData = () => {
+    let filteredData = filterData(data, self.getFilter())
+
+    let groups = d3.group(filteredData, d => formatTime(parseTime(d.year, d.month)))
+    let result = []
+
+    Array.from(groups.keys())
+      // .sort((a,b) => parseTime(a.year, a.month) - parseTime(b.year, b.month))
+      .forEach(period => {
+        let periodGroup = groups.get(period)
+        let violations = Array.from(periodGroup.values())
+          .reduce((a, b) => a + parseInt(b.occurrence), 0)
+
+        result.push({
+          year: periodGroup[0].year,
+          month: periodGroup[0].month,
+          locations: periodGroup.length,
+          violations: violations
+        })
+      })
+
+    formattedData = result
+      .sort((a,b) => parseTime(a.year, a.month) - parseTime(b.year, b.month))
+  }
+
+  self.value = () => {
+    return selected
   }
 
   self.on = (eventName, callback) => {
@@ -200,10 +301,6 @@ const timeline = () => {
         break
     }
     return self
-  }
-
-  self.value = () => {
-    return selected
   }
 
   return self

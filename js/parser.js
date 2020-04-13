@@ -100,16 +100,19 @@ const getMarkerColor = marker => {
  * @param {*} data array of {coords, month, reason, occurrence}
  * @param {*} conditions month (array), reason (array)
  */
-const filterData = (data, conditions) => {
-  if (!conditions) { return data }
+const filterData = (data, filter) => {
+  if (!filter) { return data }
 
   let result = data
-  if (conditions.period) {
-    // result = data.filter(d => conditions.month.indexOf(parseInt(d.month)) > -1)
-    result = data.filter(d =>
-      d3.timeMonth.count(parseTime(d.year, d.month), conditions.period[0]) <= 0
-      && d3.timeMonth.count(parseTime(d.year, d.month), conditions.period[1]) >= 0
+  if (filter.period) {
+    result = result.filter(d =>
+      d3.timeMonth.count(parseTime(d.year, d.month), filter.period[0]) <= 0
+      && d3.timeMonth.count(parseTime(d.year, d.month), filter.period[1]) >= 0
     )
+  }
+
+  if (filter.reasons && filter.reasons.length > 0) {
+    result = result.filter(d => filter.reasons.indexOf(d.reason) > -1)
   }
 
   // continue writing other conditions here
@@ -152,82 +155,4 @@ const printLegend = (content) => {
   `
 
   legendEl.innerHTML = template
-}
-
-/**
- * Get the stats of filtered dataset
- * @param {*} dataset
- */
-const printSummary = dataset => {
-  if (dataset.length === 0) {
-    document.getElementById('stats').innerHTML = '<div>No data available</div>'
-    return
-  }
-
-  // generate summary
-  const violations = dataset.reduce(
-    (total, current) => total + parseInt(current.occurrence),
-    0
-  )
-
-  const locations = [...new Set(dataset.map(d => d.coords))].length
-
-  const locationGroups = d3.group(dataset, d => d.coords)
-  const violationsByLocation = Array.from(locationGroups.entries())
-    .map(row => {
-      return {
-        coords: row[0],
-        total: d3.sum(row[1], d => d.occurrence)
-       }
-     })
-  const mostViolation = d3.greatest(violationsByLocation, (a,b) => a.total - b.total)
-
-  const topNum = 10
-  let topReasons = d3
-    .rollups(dataset, v => v.length, d => d.reason)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, topNum)
-
-  let topReasonHtml = topReasons.map(d => `
-    <li class="reason__item">
-      <div class="reason__id">${d[0]} ${reasonListEn[d[0]]}:</div>
-      <div class="reason__count">${d[1]}</div>
-    </li>
-  `)
-    .join('')
-
-  let template = `
-    <div>${violations} violations across ${locations} locations</div>
-    <div><b>${getAddress(mostViolation.coords)}</b> has the most violation (${mostViolation.total})</div>
-    <div>Top ${topNum} reasons</div>
-    <ul>${topReasonHtml}</ul>
-  `
-  document.getElementById('stats').innerHTML = template
-}
-
-/**
- * Get monthly summary of the whole dataset to draw the timeline
- */
-getDatasetMonthlySummary = dataset => {
-  // let groups = d3.group(dataset, d => d.month)
-  let groups = d3.group(dataset, d => formatTime(parseTime(d.year, d.month)))
-  let result = []
-
-  Array.from(groups.keys())
-    // .sort((a, b) => parseInt(a) - parseInt(b))
-    .sort((a, b) => d3.timeFormat('%b %Y')(a) - d3.timeFormat('%b %Y')(b))
-    .forEach(period => {
-      let periodGroup = groups.get(period)
-      let violations = Array.from(periodGroup.values())
-        .reduce((a, b) => a + parseInt(b.occurrence), 0)
-
-      result.push({
-        year: periodGroup[0].year,
-        month: periodGroup[0].month,
-        locations: periodGroup.length,
-        violations: violations
-      })
-    })
-
-  return result
 }

@@ -1,14 +1,13 @@
 const bubbleMaps = () => {
-  var width           = 800,
-      height          = 600,
-      center          = [24.937753465964533, 60.177494774748794],
-      projection      = d3.geoMercator(),
-      basemap         = null,
-      svg             = null,
-      mapData         = null,
-      violationData   = null,
-      filter          = { period: [parseTime(2019, 11), parseTime(2019, 11)], reason: null, bound: null },
-      allMarkers      = []
+  var width             = 800,
+      height            = 600,
+      center            = [24.937753465964533, 60.177494774748794],
+      projection        = d3.geoMercator(),
+      basemap           = null,
+      svg               = null,
+      data              = null,
+      allMarkers        = [],
+      visibleMarkers    = []
 
   // constructor
   const self = (wrapperId) => {
@@ -36,8 +35,15 @@ const bubbleMaps = () => {
       // set map and map-related component dimensions
       width = basemap.getContainer().clientWidth
       height = basemap.getContainer().clientHeight
-      self.generateMarkers()
-      // self.drawRegionMap()
+      // generate marker list
+      self.formatData()
+
+      // start listen to global filter
+      filterDispatch
+        .on('filterChanged.maps', () => {
+          self.formatData()
+          self.draw()
+        })
     })
 
     basemap.on('idle', () => {
@@ -45,17 +51,15 @@ const bubbleMaps = () => {
     })
 
     basemap.on('move', () => {
-      // self.drawRegionMap()
-
       // only redraw canvas on low zoom level when less than 3 months selected
-      let periodLength = d3.timeMonth.count(...filter.period) + 1  // months
+      let periodLength = d3.timeMonth.count(...self.getFilter().period) + 1  // months
       if (periodLength >= 3 && basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
         self.clear()
         return
       }
       // only draw on canvas when map move
       d3.select('#d3Svg').remove()
-      self.drawCanvas(self.getVisibleMarkers())
+      self.drawCanvas(allMarkers)
     })
 
     basemap.on('resize', () => {
@@ -67,15 +71,20 @@ const bubbleMaps = () => {
   }
 
   self.draw = () => {
-    self.drawCanvas(self.getVisibleMarkers())
+    showLoader(true)
+    self.drawLegend()
+    self.drawCanvas(allMarkers)
     // draw only markers visible on map when zoom level is greater than 14
     if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
-      self.drawSvg(self.getVisibleMarkers())
+      self.drawSvg(visibleMarkers)
     }
+    showLoader(false)
   }
 
   self.drawCanvas = markers => {
     self.setupProjection()
+    const filter = self.getFilter()
+
     if (!document.getElementById('d3Canvas')) {
       d3.select(basemap.getCanvasContainer())
         .append('canvas')
@@ -110,6 +119,7 @@ const bubbleMaps = () => {
    */
   self.drawSvg = markers => {
     self.setupProjection()
+    const filter = self.getFilter()
 
     d3.select('#d3Svg').remove()
     svg = d3.select(basemap.getCanvasContainer())
@@ -145,6 +155,8 @@ const bubbleMaps = () => {
 
   // draw legend with sample size of violations
   self.drawLegend = () => {
+    const filter = self.getFilter()
+
     d3.select('#lSvg').remove()
     const scaledRadius = r => getMarkerRadius(r, basemap.getZoom(), filter.period)
 
@@ -200,30 +212,6 @@ const bubbleMaps = () => {
         .attr('text-anchor', 'end')
   }
 
-  // the plan is to take helsinki border and clip the basemap based on it. will come back later
-  self.drawRegionMap = () => {
-    console.log('-drawing region map-')
-    self.setupProjection()
-    const geoPath = d3.geoPath().projection(projection)
-
-    d3.select('#rSvg').remove()
-    var rSvg = d3.select(basemap.getCanvasContainer())
-      .append('svg')
-      .attr('id', 'rSvg')
-      .attr('width', width)
-      .attr('height', height)
-
-    rSvg.append('g')
-      .selectAll('path')
-      .data(mapData.features)
-      .enter()
-      .append('path')
-        .attr('fill', '#b8b8b8')
-        .attr('d', geoPath)
-        .style('stroke', '#2d2d2d')
-        .style('opacity', .3)
-  }
-
   self.setupProjection = () => {
     center = Object.values(basemap.getCenter())
     const bbox = basemap.getContainer().getBoundingClientRect()
@@ -240,18 +228,6 @@ const bubbleMaps = () => {
     ])
   }
 
-  // get markers within map boundary
-  self.getVisibleMarkers = () => {
-    if (!allMarkers || allMarkers.length === 0) {
-      return []
-    }
-
-    return groupByOccurrence(
-      allMarkers
-        .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))
-    )
-  }
-
   // center-setter - takes lat first, then lng
   self.center = (lng, lat) => {
     if (!lng || !lat) { return center }
@@ -259,40 +235,28 @@ const bubbleMaps = () => {
     return self
   }
 
-  // map-setter
-  self.mapData = value => {
-    if (!value) { return mapData }
-    mapData = value
+  self.data = value => {
+    if (!value) { return data }
+    data = value
+    self.formatData()
     return self
   }
 
-  self.violationData = value => {
-    if (!value) { return violationData }
-    violationData = value
-    self.generateMarkers()
-    return self
+  self.getFilter = () => {
+    return globalFilter
   }
 
-  self.filter = value => {
-    if (!value) { return filter }
-    filter = value
-    // only start drawing when period selector snapping complete
-    setTimeout(() => {
-      self.generateMarkers()
-      self.draw()
-    }, SNAPPING_ANIMATION_DURATION + 100)
-    return self
-  }
+  // this component takes all filters, but only care about markers within map boundary
+  self.formatData = () => {
+    let filteredData = filterData(data, self.getFilter())
+    allMarkers = groupByOccurrence(filteredData)
 
-  self.generateMarkers = () => {
-    if (violationData && basemap) {
-      // generate marker list on filter change
-      allMarkers = filterData(violationData, filter)
-      printSummary(allMarkers)
-    } else {
-      allMarkers = []
-      visibleMarkers = []
-    }
+    if (!basemap) { return allMarkers }
+
+    visibleMarkers = groupByOccurrence(
+      filteredData
+        .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))
+    )
   }
 
   self.clear = () => {

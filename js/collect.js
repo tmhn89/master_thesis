@@ -32,7 +32,6 @@ const fetchAddressLocation = () => {
 
 const fetchReasonGroups = () => {
   return d3.json('data/violation_reason_groups.json', row => {
-    console.log(row)
     return row
   })
 }
