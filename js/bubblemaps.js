@@ -8,7 +8,9 @@ const bubbleMaps = () => {
       data              = null,
       filteredData      = null,
       allMarkers        = [],
-      visibleMarkers    = []
+      visibleMarkers    = [],
+      explorerShowing   = false,
+      eSvg              = null // svg holding explorer component
 
   // constructor
   const self = (wrapperId) => {
@@ -45,6 +47,10 @@ const bubbleMaps = () => {
           self.formatData()
           self.draw()
         })
+
+      // set explorer activity
+      d3.select('.control__button--explorer')
+        .on('click', self.toggleExplorerState)
     })
 
     basemap.on('idle', () => {
@@ -80,6 +86,10 @@ const bubbleMaps = () => {
           center: e.lngLat,
           zoom: ZOOM_INTERACTION_LEVEL
         })
+      }
+
+      if (explorerShowing) {
+        self.showExplorer(e.point)
       }
     })
   }
@@ -241,6 +251,66 @@ const bubbleMaps = () => {
       bbox.width / 2,
       bbox.height / 2
     ])
+  }
+
+  self.toggleExplorerState = () => {
+    explorerShowing = !explorerShowing
+
+    d3.select('.control__button--explorer')
+      .node()
+      .classList
+      .toggle('control__button--active')
+
+    d3.select('.mapboxgl-canvas-container')
+      .node()
+      .classList
+      .toggle('has-explorer')
+
+    if (!explorerShowing) {
+      self.hideExplorer()
+    }
+  }
+
+  self.showExplorer = point => {
+    // draw a circle on the map
+    let explorerRadius = 100
+
+    if (!eSvg) {
+      eSvg = d3.select(basemap.getCanvasContainer())
+        .append('svg')
+        .attr('id', 'eSvg')
+        .attr('class', 'svg-wrapper')
+        .attr('width', width)
+        .attr('height', height)
+    }
+    // remove old explorer circle there is one
+    d3.select('.explorer__border').remove()
+    d3.select('.explorer__circle').remove()
+
+    // border - used for dragging the size
+    eSvg
+      .append('circle')
+        .attr('class', 'explorer__border')
+        .attr('cx', point.x)
+        .attr('cy', point.y)
+        .style('fill', 'transparent')
+        .attr('stroke', '#666')
+        .attr('stroke-width', '4')
+        .attr('cursor', 'nesw-resize')
+        .attr('r', explorerRadius)
+
+    eSvg
+      .append('circle')
+        .attr('class', 'explorer__circle')
+        .attr('cx', point.x)
+        .attr('cy', point.y)
+        .style('fill', '#999')
+        .style('fill-opacity', '0.2')
+        .attr('r', explorerRadius)
+  }
+
+  self.hideExplorer = () => {
+    d3.select('#eSvg').remove()
   }
 
   // center-setter - takes lat first, then lng

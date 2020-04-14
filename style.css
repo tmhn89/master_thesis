@@ -25,6 +25,10 @@ body {
   position: relative;
 }
 
+.mapboxgl-canvas-container.has-explorer {
+  cursor: crosshair
+}
+
 .wrapper {
   text-align: center;
   margin-bottom: 32px;
@@ -116,4 +120,25 @@ rect.selection {
 
 .reason__button--active {
   background-color: #59c154;
+}
+
+/* controls - buttons */
+.controls {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 5;
+}
+
+.control__button {
+  outline: none;
+}
+
+.control__button--active {
+  background-color: #59c154;
+}
+
+/* explorer */
+#eSvg {
+  z-index: 4;
 }
