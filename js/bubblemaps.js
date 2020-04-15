@@ -9,6 +9,8 @@ const bubbleMaps = () => {
       filteredData      = null,
       allMarkers        = [],
       visibleMarkers    = [],
+      exploringMarkers  = [],
+      flying            = false, // flag to check if the map is in flying effect
       explorerShowing   = false,
       eSvg              = null // svg holding explorer component
 
@@ -38,6 +40,7 @@ const bubbleMaps = () => {
       // set map and map-related component dimensions
       width = basemap.getContainer().clientWidth
       height = basemap.getContainer().clientHeight
+
       // generate marker list
       self.formatData()
 
@@ -54,6 +57,7 @@ const bubbleMaps = () => {
     })
 
     basemap.on('idle', () => {
+      self.getMetersPerPixel()
       self.draw()
     })
 
@@ -69,7 +73,12 @@ const bubbleMaps = () => {
       self.drawCanvas(allMarkers)
     })
 
-    basemap.on('moveend', () => {
+    basemap.on('moveend', e => {
+      if (flying) {
+        basemap.fire('flyend')
+        flying = false
+      }
+
       self.getVisibleMarkers()
     })
 
@@ -84,13 +93,22 @@ const bubbleMaps = () => {
       if (basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
         basemap.flyTo({
           center: e.lngLat,
-          zoom: ZOOM_INTERACTION_LEVEL
+          zoom: ZOOM_INTERACTION_LEVEL,
+          essential: true
         })
-      }
 
-      if (explorerShowing) {
-        self.showExplorer(e.point)
+        flying = true
+      } else {
+        // only trigger explore when zoom level close enough
+        if (explorerShowing) {
+          console.log(e)
+          self.showExplorer(e.point, e.lngLat)
+        }
       }
+    })
+
+    basemap.on('flyend', e => {
+      console.log('flyend', basemap.getCenter())
     })
   }
 
@@ -271,9 +289,10 @@ const bubbleMaps = () => {
     }
   }
 
-  self.showExplorer = point => {
-    // draw a circle on the map
-    let explorerRadius = 100
+  self.showExplorer = (centerPoint, centerLngLat) => {
+    // draw a circle on the map with radius equivalent to 350m
+    // @todo: allow user to set this later
+    let explorerRadius = 350 * self.getMetersPerPixel()
 
     if (!eSvg) {
       eSvg = d3.select(basemap.getCanvasContainer())
@@ -291,8 +310,8 @@ const bubbleMaps = () => {
     eSvg
       .append('circle')
         .attr('class', 'explorer__border')
-        .attr('cx', point.x)
-        .attr('cy', point.y)
+        .attr('cx', centerPoint.x)
+        .attr('cy', centerPoint.y)
         .style('fill', 'transparent')
         .attr('stroke', '#666')
         .attr('stroke-width', '4')
@@ -302,15 +321,41 @@ const bubbleMaps = () => {
     eSvg
       .append('circle')
         .attr('class', 'explorer__circle')
-        .attr('cx', point.x)
-        .attr('cy', point.y)
+        .attr('cx', centerPoint.x)
+        .attr('cy', centerPoint.y)
         .style('fill', '#999')
         .style('fill-opacity', '0.2')
         .attr('r', explorerRadius)
+
+    // fixed distance as 350m at first.
+    exploringMarkers = visibleMarkers
+      .filter(d => centerLngLat.distanceTo({
+        lng: d.coords.split(' ')[1],
+        lat: d.coords.split(' ')[0]
+      }) <= 350 )
+
+    self.drawCanvas(exploringMarkers)
+    self.drawSvg(exploringMarkers)
   }
 
   self.hideExplorer = () => {
-    d3.select('#eSvg').remove()
+    d3.select('#eSvg').selectAll('*').remove()
+    self.drawCanvas(visibleMarkers)
+    self.drawSvg(visibleMarkers)
+  }
+
+  self.getPixelPerMeter = () => {
+    // take two points on the map and measure their distance using mapbox
+    const point1 = new mapboxgl.LngLat(24, 60)
+    const point2 = new mapboxgl.LngLat(24.001, 60)
+    const distanceMeter = point1.distanceTo(point2)
+    // then calculate their projected distance in pixel
+    const projected1 = basemap.project(point1)
+    const projected2 = basemap.project(point2)
+    const distancePixel = projected1.dist(projected2)
+    // Pixel-per-meter
+    const mpp = distancePixel / distanceMeter
+    return mpp
   }
 
   // center-setter - takes lat first, then lng
