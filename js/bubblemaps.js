@@ -11,10 +11,10 @@ const bubbleMaps = () => {
       visibleMarkers    = [],
       flying            = false, // flag to check if the map is in flying effect
       explorer          = {
-        show:         false,
-        markers:      null,
-        centerCoords: null,
-        radius:       350 // meter
+        show          : false,
+        markers       : null,
+        centerCoords  : null,
+        radius        : EXPLORER_DEFAULT_RADIUS // meter
       }
 
   // constructor
@@ -72,7 +72,7 @@ const bubbleMaps = () => {
       }
       // only draw on canvas when map move
       d3.select('#d3Svg').remove()
-      if (explorer.show) {
+      if (explorer.show && explorer.centerCoords) {
         self.showExplorer()
       } else {
         self.drawCanvas(allMarkers)
@@ -122,14 +122,16 @@ const bubbleMaps = () => {
     showLoader(true)
     self.drawLegend()
 
-    if (explorer.show) {
+    if (explorer.show && explorer.centerCoords) {
       self.showExplorer()
-    } else {
-      self.drawCanvas(allMarkers)
-      // draw only markers visible on map when zoom level is greater than 14
-      if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
-        self.drawSvg(visibleMarkers)
-      }
+      showLoader(false)
+      return
+    }
+
+    self.drawCanvas(allMarkers)
+    // draw only markers visible on map when zoom level is greater than 14
+    if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
+      self.drawSvg(visibleMarkers)
     }
 
     showLoader(false)
@@ -326,6 +328,28 @@ const bubbleMaps = () => {
         .attr('stroke-width', 2)
         .attr('cursor', 'nesw-resize')
         .attr('r', explorer.radius * self.getPixelPerMeter())
+      .call(d3.drag()
+        .on('drag', function () {
+          // set new radius on dragging
+          let newBorderPoint = new mapboxgl.Point(d3.event.x, d3.event.y)
+
+          // calculate new radius in meter
+          let newBorderPointCoords = basemap.unproject(newBorderPoint)
+          explorer.radius = explorer.centerCoords.distanceTo(newBorderPointCoords)
+
+          if (explorer.radius >= EXPLORER_MAX_RADIUS) {
+            explorer.radius = EXPLORER_MAX_RADIUS
+            return
+          }
+
+          let newRadius = centerProjected.dist(newBorderPoint)
+
+          // update the view
+          this.setAttribute('r', newRadius)
+          d3.select('.explorer__circle').attr('r', newRadius)
+          self.drawMarkersInExplorer()
+        })
+      )
 
     d3.select('#eSvg')
       .append('circle')
