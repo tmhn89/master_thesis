@@ -9,10 +9,14 @@ const bubbleMaps = () => {
       filteredData      = null,
       allMarkers        = [],
       visibleMarkers    = [],
-      exploringMarkers  = [],
       flying            = false, // flag to check if the map is in flying effect
-      explorerShowing   = false,
       eSvg              = null // svg holding explorer component
+      explorer          = {
+        show:         false,
+        markers:      null,
+        centerCoords: null,
+        radius:       350 // meter
+      }
 
   // constructor
   const self = (wrapperId) => {
@@ -57,7 +61,6 @@ const bubbleMaps = () => {
     })
 
     basemap.on('idle', () => {
-      self.getMetersPerPixel()
       self.draw()
     })
 
@@ -70,7 +73,11 @@ const bubbleMaps = () => {
       }
       // only draw on canvas when map move
       d3.select('#d3Svg').remove()
-      self.drawCanvas(allMarkers)
+      if (explorer.show && explorer.centerCoords) {
+        self.showExplorer()
+      } else {
+        self.drawCanvas(allMarkers)
+      }
     })
 
     basemap.on('moveend', e => {
@@ -93,16 +100,16 @@ const bubbleMaps = () => {
       if (basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
         basemap.flyTo({
           center: e.lngLat,
-          zoom: ZOOM_INTERACTION_LEVEL,
+          zoom: ZOOM_INTERACTION_LEVEL + 0.1,
           essential: true
         })
 
         flying = true
       } else {
         // only trigger explore when zoom level close enough
-        if (explorerShowing) {
-          console.log(e)
-          self.showExplorer(e.point, e.lngLat)
+        if (explorer.show) {
+          explorer.centerCoords = e.lngLat
+          self.showExplorer()
         }
       }
     })
@@ -115,11 +122,17 @@ const bubbleMaps = () => {
   self.draw = () => {
     showLoader(true)
     self.drawLegend()
-    self.drawCanvas(allMarkers)
-    // draw only markers visible on map when zoom level is greater than 14
-    if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
-      self.drawSvg(visibleMarkers)
+
+    if (explorer.show && explorer.centerCoords) {
+      self.showExplorer()
+    } else {
+      self.drawCanvas(allMarkers)
+      // draw only markers visible on map when zoom level is greater than 14
+      if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
+        self.drawSvg(visibleMarkers)
+      }
     }
+
     showLoader(false)
   }
 
@@ -272,7 +285,7 @@ const bubbleMaps = () => {
   }
 
   self.toggleExplorerState = () => {
-    explorerShowing = !explorerShowing
+    explorer.show = !explorer.show
 
     d3.select('.control__button--explorer')
       .node()
@@ -284,16 +297,12 @@ const bubbleMaps = () => {
       .classList
       .toggle('has-explorer')
 
-    if (!explorerShowing) {
+    if (!explorer.show) {
       self.hideExplorer()
     }
   }
 
-  self.showExplorer = (centerPoint, centerLngLat) => {
-    // draw a circle on the map with radius equivalent to 350m
-    // @todo: allow user to set this later
-    let explorerRadius = 350 * self.getMetersPerPixel()
-
+  self.showExplorer = () => {
     if (!eSvg) {
       eSvg = d3.select(basemap.getCanvasContainer())
         .append('svg')
@@ -306,42 +315,47 @@ const bubbleMaps = () => {
     d3.select('.explorer__border').remove()
     d3.select('.explorer__circle').remove()
 
+    const centerProjected = basemap.project(explorer.centerCoords)
     // border - used for dragging the size
     eSvg
       .append('circle')
         .attr('class', 'explorer__border')
-        .attr('cx', centerPoint.x)
-        .attr('cy', centerPoint.y)
+        .attr('cx', centerProjected.x)
+        .attr('cy', centerProjected.y)
         .style('fill', 'transparent')
         .attr('stroke', '#666')
         .attr('stroke-width', '4')
         .attr('cursor', 'nesw-resize')
-        .attr('r', explorerRadius)
+        .attr('r', explorer.radius * self.getPixelPerMeter())
 
     eSvg
       .append('circle')
         .attr('class', 'explorer__circle')
-        .attr('cx', centerPoint.x)
-        .attr('cy', centerPoint.y)
+        .attr('cx', centerProjected.x)
+        .attr('cy', centerProjected.y)
         .style('fill', '#999')
         .style('fill-opacity', '0.2')
-        .attr('r', explorerRadius)
+        .attr('r', explorer.radius * self.getPixelPerMeter())
 
-    // fixed distance as 350m at first.
-    exploringMarkers = visibleMarkers
-      .filter(d => centerLngLat.distanceTo({
-        lng: d.coords.split(' ')[1],
-        lat: d.coords.split(' ')[0]
-      }) <= 350 )
-
-    self.drawCanvas(exploringMarkers)
-    self.drawSvg(exploringMarkers)
+    self.drawMarkersInExplorer()
   }
 
   self.hideExplorer = () => {
     d3.select('#eSvg').selectAll('*').remove()
     self.drawCanvas(visibleMarkers)
     self.drawSvg(visibleMarkers)
+  }
+
+  self.drawMarkersInExplorer = () => {
+    // fixed distance as 350m at first. only display marker within explore circle
+    explorer.markers = visibleMarkers
+    .filter(d => explorer.centerCoords.distanceTo({
+      lng: d.coords.split(' ')[1],
+      lat: d.coords.split(' ')[0]
+    }) <= explorer.radius)
+
+    self.drawCanvas(explorer.markers)
+    self.drawSvg(explorer.markers)
   }
 
   self.getPixelPerMeter = () => {
