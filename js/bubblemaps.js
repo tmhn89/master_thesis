@@ -10,7 +10,6 @@ const bubbleMaps = () => {
       allMarkers        = [],
       visibleMarkers    = [],
       flying            = false, // flag to check if the map is in flying effect
-      eSvg              = null // svg holding explorer component
       explorer          = {
         show:         false,
         markers:      null,
@@ -73,7 +72,7 @@ const bubbleMaps = () => {
       }
       // only draw on canvas when map move
       d3.select('#d3Svg').remove()
-      if (explorer.show && explorer.centerCoords) {
+      if (explorer.show) {
         self.showExplorer()
       } else {
         self.drawCanvas(allMarkers)
@@ -97,6 +96,12 @@ const bubbleMaps = () => {
     })
 
     basemap.on('click', (e) => {
+      if (explorer.show) {
+        explorer.centerCoords = e.lngLat
+        self.showExplorer()
+        return
+      }
+
       if (basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
         basemap.flyTo({
           center: e.lngLat,
@@ -105,17 +110,11 @@ const bubbleMaps = () => {
         })
 
         flying = true
-      } else {
-        // only trigger explore when zoom level close enough
-        if (explorer.show) {
-          explorer.centerCoords = e.lngLat
-          self.showExplorer()
-        }
       }
     })
 
     basemap.on('flyend', e => {
-      console.log('flyend', basemap.getCenter())
+      // catch flyend event here
     })
   }
 
@@ -123,7 +122,7 @@ const bubbleMaps = () => {
     showLoader(true)
     self.drawLegend()
 
-    if (explorer.show && explorer.centerCoords) {
+    if (explorer.show) {
       self.showExplorer()
     } else {
       self.drawCanvas(allMarkers)
@@ -303,8 +302,8 @@ const bubbleMaps = () => {
   }
 
   self.showExplorer = () => {
-    if (!eSvg) {
-      eSvg = d3.select(basemap.getCanvasContainer())
+    if (!d3.select('#eSvg').node()) {
+      d3.select(basemap.getCanvasContainer())
         .append('svg')
         .attr('id', 'eSvg')
         .attr('class', 'svg-wrapper')
@@ -317,31 +316,31 @@ const bubbleMaps = () => {
 
     const centerProjected = basemap.project(explorer.centerCoords)
     // border - used for dragging the size
-    eSvg
+    d3.select('#eSvg')
       .append('circle')
         .attr('class', 'explorer__border')
         .attr('cx', centerProjected.x)
         .attr('cy', centerProjected.y)
         .style('fill', 'transparent')
         .attr('stroke', '#666')
-        .attr('stroke-width', '4')
+        .attr('stroke-width', 2)
         .attr('cursor', 'nesw-resize')
         .attr('r', explorer.radius * self.getPixelPerMeter())
 
-    eSvg
+    d3.select('#eSvg')
       .append('circle')
         .attr('class', 'explorer__circle')
         .attr('cx', centerProjected.x)
         .attr('cy', centerProjected.y)
         .style('fill', '#999')
-        .style('fill-opacity', '0.2')
+        .style('fill-opacity', 0.2)
         .attr('r', explorer.radius * self.getPixelPerMeter())
 
     self.drawMarkersInExplorer()
   }
 
   self.hideExplorer = () => {
-    d3.select('#eSvg').selectAll('*').remove()
+    d3.select('#eSvg').remove()
     self.drawCanvas(visibleMarkers)
     self.drawSvg(visibleMarkers)
   }
