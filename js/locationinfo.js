@@ -29,6 +29,31 @@ const locationInfo = () => {
     //  reasons: {1302: 7, 1501: 110, 2001: 1, 2200: 9, 1302 2001: 1, 2103 2104: 1, 2104 2103: 1}
     //  total: 130
     // }
+    let summarizedData = {}
+    switch (data.type) {
+      case 'area':
+        /// summarize data here
+        summarizedData = {
+          reasons: {},
+          total: data.total
+        }
+
+        data.markers.forEach(marker => {
+          Object.keys(marker.reasons)
+            .forEach(id => {
+              if (!summarizedData.reasons[id]) {
+                summarizedData.reasons[id] = 0
+              }
+              summarizedData.reasons[id] += marker.reasons[id]
+            })
+        })
+        break
+      case 'point':
+        summarizedData = data.markers[0]
+        break
+      default:
+        break
+    }
 
     d3.select('#infoSvg').remove()
     wrapper
@@ -41,11 +66,11 @@ const locationInfo = () => {
       .append('g')
       .attr('transform', `translate(0, ${padding.y})`)
 
-    const reasons = Object.keys(data.reasons)
+    const reasons = Object.keys(summarizedData.reasons)
     // setup scale
     var scale = {}
     scale.x = d3.scaleLinear()
-      .domain([0, data.total])
+      .domain([0, summarizedData.total])
       .range([padding.x, width - padding.x - margin.right])
 
     const lineHeight = barHeight + spacing + fontSize * 1.25
@@ -66,7 +91,6 @@ const locationInfo = () => {
         .attr('fill', '#999')
         .attr('fill-opacity', '0.3')
 
-
     // data with color and length as the violation count
     infoArea.selectAll('rect.location-info__data')
       .data(reasons)
@@ -84,7 +108,7 @@ const locationInfo = () => {
         })
         .attr('fill-opacity', '1')
         .transition()
-          .attr('width', d => scale.x(data.reasons[d]))
+          .attr('width', d => scale.x(summarizedData.reasons[d]))
         .duration(750)
 
     // text - reason code and name
@@ -111,14 +135,28 @@ const locationInfo = () => {
         .attr('font-size', fontSize)
         .attr('text-anchor', 'end')
         .attr('fill', '#999')
-        .text(d => data.reasons[d])
+        .text(d => summarizedData.reasons[d])
   }
 
   self.printSummary = () => {
-    let template = `
-      <div>${getAddress(data.coords)}</div>
-      <div>Total violations: ${data.total}</div>
-    `
+    let template = ''
+
+    switch (data.type) {
+      case 'area':
+        template = `
+          <div>Radius: ${parseInt(data.radius)} m</div>
+          <div>Total violations: ${data.total}</div>
+        `
+        break
+      case 'point':
+        template = `
+          <div>${getAddress(data.markers[0].coords)}</div>
+          <div>Total violations: ${data.markers[0].total}</div>
+        `
+        break
+      default:
+        break
+    }
 
     wrapper.node().innerHTML = template
   }

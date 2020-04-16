@@ -198,7 +198,12 @@ const bubbleMaps = () => {
         .attr('r', d => getMarkerRadius(d.total, basemap.getZoom(), filter.period))
         .attr('cursor', 'pointer')
       // .on('click', d => printLegend(d))
-      .on('click', d => { infoDispatch.call('locationSelected', this, d) })
+      .on('click', d => {
+        infoDispatch.call('locationSelected', this, {
+          type: 'point',
+          markers: [d]
+        })
+      })
       .on('mouseover', function (d) {
         d3.select(this)
           .style('fill', d => getMarkerColor(d))
@@ -396,8 +401,9 @@ const bubbleMaps = () => {
       centerProjected   : null,
       radius            : EXPLORER_DEFAULT_RADIUS // meter
     }
-    self.drawCanvas(visibleMarkers)
-    self.drawSvg(visibleMarkers)
+    // self.drawCanvas(visibleMarkers)
+    // self.drawSvg(visibleMarkers)
+    self.draw()
   }
 
   self.drawMarkersInExplorer = () => {
@@ -407,6 +413,13 @@ const bubbleMaps = () => {
       lng: d.coords.split(' ')[1],
       lat: d.coords.split(' ')[0]
     }) <= explorer.radius)
+
+    infoDispatch.call('locationSelected', this, {
+      type: 'area',
+      radius: explorer.radius,
+      markers: explorer.markers,
+      total: d3.sum(explorer.markers, d => d.total)
+    })
 
     self.drawCanvas(explorer.markers)
     // self.drawSvg(explorer.markers)
