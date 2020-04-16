@@ -11,10 +11,11 @@ const bubbleMaps = () => {
       visibleMarkers    = [],
       flying            = false, // flag to check if the map is in flying effect
       explorer          = {
-        show          : false,
-        markers       : null,
-        centerCoords  : null,
-        radius        : EXPLORER_DEFAULT_RADIUS // meter
+        show              : false,
+        markers           : null,
+        centerCoords      : null,
+        centerProjected   : null,
+        radius            : EXPLORER_DEFAULT_RADIUS // meter
       }
 
   // constructor
@@ -316,16 +317,16 @@ const bubbleMaps = () => {
     d3.select('.explorer__border').remove()
     d3.select('.explorer__circle').remove()
 
-    const centerProjected = basemap.project(explorer.centerCoords)
+    explorer.centerProjected = basemap.project(explorer.centerCoords)
     // border - used for dragging the size
     d3.select('#eSvg')
       .append('circle')
         .attr('class', 'explorer__border')
-        .attr('cx', centerProjected.x)
-        .attr('cy', centerProjected.y)
+        .attr('cx', explorer.centerProjected.x)
+        .attr('cy', explorer.centerProjected.y)
         .style('fill', 'transparent')
         .attr('stroke', '#666')
-        .attr('stroke-width', 2)
+        .attr('stroke-width', 2.7 + 0.05 * basemap.getZoom())
         .attr('cursor', 'nesw-resize')
         .attr('r', explorer.radius * self.getPixelPerMeter())
       .call(d3.drag()
@@ -342,10 +343,15 @@ const bubbleMaps = () => {
             return
           }
 
-          let newRadius = centerProjected.dist(newBorderPoint)
+          explorer.centerProjected = new mapboxgl.Point(
+            d3.select('.explorer__border').attr('cx'),
+            d3.select('.explorer__border').attr('cy')
+          )
+
+          let newRadius = explorer.centerProjected.dist(newBorderPoint)
 
           // update the view
-          this.setAttribute('r', newRadius)
+          d3.select('.explorer__border').attr('r', newRadius)
           d3.select('.explorer__circle').attr('r', newRadius)
           self.drawMarkersInExplorer()
         })
@@ -354,17 +360,42 @@ const bubbleMaps = () => {
     d3.select('#eSvg')
       .append('circle')
         .attr('class', 'explorer__circle')
-        .attr('cx', centerProjected.x)
-        .attr('cy', centerProjected.y)
+        .attr('cx', explorer.centerProjected.x)
+        .attr('cy', explorer.centerProjected.y)
         .style('fill', '#999')
         .style('fill-opacity', 0.2)
         .attr('r', explorer.radius * self.getPixelPerMeter())
+      .call(d3.drag()
+        .on('drag', function () {
+          // update explorer circle center
+          explorer.centerProjected = new mapboxgl.Point(d3.event.x, d3.event.y)
+          // convert new center to coords
+          explorer.centerCoords = basemap.unproject(explorer.centerProjected)
+
+          // update the view
+          d3.select('.explorer__border')
+            .attr('cx', explorer.centerProjected.x)
+            .attr('cy', explorer.centerProjected.y)
+          d3.select('.explorer__circle')
+            .attr('cx', explorer.centerProjected.x)
+            .attr('cy', explorer.centerProjected.y)
+          self.drawMarkersInExplorer()
+        })
+      )
 
     self.drawMarkersInExplorer()
   }
 
   self.hideExplorer = () => {
     d3.select('#eSvg').remove()
+    // reset explorer object
+    explorer          = {
+      show              : false,
+      markers           : null,
+      centerCoords      : null,
+      centerProjected   : null,
+      radius            : EXPLORER_DEFAULT_RADIUS // meter
+    }
     self.drawCanvas(visibleMarkers)
     self.drawSvg(visibleMarkers)
   }
@@ -378,7 +409,7 @@ const bubbleMaps = () => {
     }) <= explorer.radius)
 
     self.drawCanvas(explorer.markers)
-    self.drawSvg(explorer.markers)
+    // self.drawSvg(explorer.markers)
   }
 
   self.getPixelPerMeter = () => {
