@@ -1,6 +1,8 @@
 
 const ZOOM_INTERACTION_LEVEL      = 14
 const SNAPPING_ANIMATION_DURATION = 300
+const EXPLORER_DEFAULT_RADIUS     = 350 // meter
+const EXPLORER_MAX_RADIUS         = 1000 // meter
 
 var addressBook   = []
 var reasonGroups  = []

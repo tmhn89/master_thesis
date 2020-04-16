@@ -8,7 +8,15 @@ const bubbleMaps = () => {
       data              = null,
       filteredData      = null,
       allMarkers        = [],
-      visibleMarkers    = []
+      visibleMarkers    = [],
+      flying            = false, // flag to check if the map is in flying effect
+      explorer          = {
+        show              : false,
+        markers           : null,
+        centerCoords      : null,
+        centerProjected   : null,
+        radius            : EXPLORER_DEFAULT_RADIUS // meter
+      }
 
   // constructor
   const self = (wrapperId) => {
@@ -36,6 +44,7 @@ const bubbleMaps = () => {
       // set map and map-related component dimensions
       width = basemap.getContainer().clientWidth
       height = basemap.getContainer().clientHeight
+
       // generate marker list
       self.formatData()
 
@@ -45,6 +54,10 @@ const bubbleMaps = () => {
           self.formatData()
           self.draw()
         })
+
+      // set explorer activity
+      d3.select('.control__button--explorer')
+        .on('click', self.toggleExplorerState)
     })
 
     basemap.on('idle', () => {
@@ -60,10 +73,19 @@ const bubbleMaps = () => {
       }
       // only draw on canvas when map move
       d3.select('#d3Svg').remove()
-      self.drawCanvas(allMarkers)
+      if (explorer.show && explorer.centerCoords) {
+        self.showExplorer()
+      } else {
+        self.drawCanvas(allMarkers)
+      }
     })
 
-    basemap.on('moveend', () => {
+    basemap.on('moveend', e => {
+      if (flying) {
+        basemap.fire('flyend')
+        flying = false
+      }
+
       self.getVisibleMarkers()
     })
 
@@ -75,23 +97,44 @@ const bubbleMaps = () => {
     })
 
     basemap.on('click', (e) => {
+      if (explorer.show) {
+        explorer.centerCoords = e.lngLat
+        self.showExplorer()
+        return
+      }
+
       if (basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
         basemap.flyTo({
           center: e.lngLat,
-          zoom: ZOOM_INTERACTION_LEVEL
+          zoom: ZOOM_INTERACTION_LEVEL + 0.1,
+          essential: true
         })
+
+        flying = true
       }
+    })
+
+    basemap.on('flyend', e => {
+      // catch flyend event here
     })
   }
 
   self.draw = () => {
     showLoader(true)
     self.drawLegend()
+
+    if (explorer.show && explorer.centerCoords) {
+      self.showExplorer()
+      showLoader(false)
+      return
+    }
+
     self.drawCanvas(allMarkers)
     // draw only markers visible on map when zoom level is greater than 14
     if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
       self.drawSvg(visibleMarkers)
     }
+
     showLoader(false)
   }
 
@@ -155,7 +198,12 @@ const bubbleMaps = () => {
         .attr('r', d => getMarkerRadius(d.total, basemap.getZoom(), filter.period))
         .attr('cursor', 'pointer')
       // .on('click', d => printLegend(d))
-      .on('click', d => { infoDispatch.call('locationSelected', this, d) })
+      .on('click', d => {
+        infoDispatch.call('locationSelected', this, {
+          type: 'point',
+          markers: [d]
+        })
+      })
       .on('mouseover', function (d) {
         d3.select(this)
           .style('fill', d => getMarkerColor(d))
@@ -241,6 +289,154 @@ const bubbleMaps = () => {
       bbox.width / 2,
       bbox.height / 2
     ])
+  }
+
+  self.toggleExplorerState = () => {
+    explorer.show = !explorer.show
+
+    d3.select('.control__button--explorer')
+      .node()
+      .classList
+      .toggle('control__button--active')
+
+    d3.select('.mapboxgl-canvas-container')
+      .node()
+      .classList
+      .toggle('has-explorer')
+
+    if (!explorer.show) {
+      self.hideExplorer()
+    }
+  }
+
+  self.showExplorer = () => {
+    if (!d3.select('#eSvg').node()) {
+      d3.select(basemap.getCanvasContainer())
+        .append('svg')
+        .attr('id', 'eSvg')
+        .attr('class', 'svg-wrapper')
+        .attr('width', width)
+        .attr('height', height)
+    }
+    // remove old explorer circle there is one
+    d3.select('.explorer__border').remove()
+    d3.select('.explorer__circle').remove()
+
+    explorer.centerProjected = basemap.project(explorer.centerCoords)
+    // border - used for dragging the size
+    d3.select('#eSvg')
+      .append('circle')
+        .attr('class', 'explorer__border')
+        .attr('cx', explorer.centerProjected.x)
+        .attr('cy', explorer.centerProjected.y)
+        .style('fill', 'transparent')
+        .attr('stroke', '#666')
+        .attr('stroke-width', 2.7 + 0.05 * basemap.getZoom())
+        .attr('cursor', 'nesw-resize')
+        .attr('r', explorer.radius * self.getPixelPerMeter())
+      .call(d3.drag()
+        .on('drag', function () {
+          // set new radius on dragging
+          let newBorderPoint = new mapboxgl.Point(d3.event.x, d3.event.y)
+
+          // calculate new radius in meter
+          let newBorderPointCoords = basemap.unproject(newBorderPoint)
+          explorer.radius = explorer.centerCoords.distanceTo(newBorderPointCoords)
+
+          if (explorer.radius >= EXPLORER_MAX_RADIUS) {
+            explorer.radius = EXPLORER_MAX_RADIUS
+            return
+          }
+
+          explorer.centerProjected = new mapboxgl.Point(
+            d3.select('.explorer__border').attr('cx'),
+            d3.select('.explorer__border').attr('cy')
+          )
+
+          let newRadius = explorer.centerProjected.dist(newBorderPoint)
+
+          // update the view
+          d3.select('.explorer__border').attr('r', newRadius)
+          d3.select('.explorer__circle').attr('r', newRadius)
+          self.drawMarkersInExplorer()
+        })
+      )
+
+    d3.select('#eSvg')
+      .append('circle')
+        .attr('class', 'explorer__circle')
+        .attr('cx', explorer.centerProjected.x)
+        .attr('cy', explorer.centerProjected.y)
+        .style('fill', '#999')
+        .style('fill-opacity', 0.2)
+        .attr('r', explorer.radius * self.getPixelPerMeter())
+      .call(d3.drag()
+        .on('drag', function () {
+          // update explorer circle center
+          explorer.centerProjected = new mapboxgl.Point(d3.event.x, d3.event.y)
+          // convert new center to coords
+          explorer.centerCoords = basemap.unproject(explorer.centerProjected)
+
+          // update the view
+          d3.select('.explorer__border')
+            .attr('cx', explorer.centerProjected.x)
+            .attr('cy', explorer.centerProjected.y)
+          d3.select('.explorer__circle')
+            .attr('cx', explorer.centerProjected.x)
+            .attr('cy', explorer.centerProjected.y)
+          self.drawMarkersInExplorer()
+        })
+      )
+
+    self.drawMarkersInExplorer()
+  }
+
+  self.hideExplorer = () => {
+    d3.select('#eSvg').remove()
+    // reset explorer object
+    explorer          = {
+      show              : false,
+      markers           : null,
+      centerCoords      : null,
+      centerProjected   : null,
+      radius            : EXPLORER_DEFAULT_RADIUS // meter
+    }
+    // self.drawCanvas(visibleMarkers)
+    // self.drawSvg(visibleMarkers)
+    self.draw()
+  }
+
+  self.drawMarkersInExplorer = () => {
+    // fixed distance as 350m at first. only display marker within explore circle
+    explorer.markers = visibleMarkers
+    .filter(d => explorer.centerCoords.distanceTo({
+      lng: d.coords.split(' ')[1],
+      lat: d.coords.split(' ')[0]
+    }) <= explorer.radius)
+
+    infoDispatch.call('locationSelected', this, {
+      type: 'area',
+      radius: explorer.radius,
+      markers: explorer.markers,
+      total: d3.sum(explorer.markers, d => d.total)
+    })
+
+    self.drawCanvas(explorer.markers)
+    // self.drawSvg(explorer.markers)
+  }
+
+  self.getPixelPerMeter = () => {
+    // take two points on the map and measure their distance using mapbox
+    const point1 = new mapboxgl.LngLat(24, 60)
+    const point2 = new mapboxgl.LngLat(24.001, 60)
+    const distanceMeter = point1.distanceTo(point2)
+    // then calculate their projected distance in pixel
+    const projected1 = basemap.project(point1)
+    const projected2 = basemap.project(point2)
+    const distancePixel = projected1.dist(projected2)
+    // Pixel-per-meter
+    const mpp = distancePixel / distanceMeter
+    return mpp
   }
 
   // center-setter - takes lat first, then lng
