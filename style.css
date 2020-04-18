@@ -16,7 +16,7 @@ body {
 .content {
   display: grid;
   grid-template-columns: 1fr 360px;
-  grid-template-rows: 1fr 240px;
+  grid-template-rows: 1fr 144px;
   width: 100vw;
   height: 100vh;
 }

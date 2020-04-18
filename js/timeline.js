@@ -7,7 +7,7 @@ const timeline = () => {
       selected      = [parseTime(2019, 11), parseTime(2019, 11)],
       width         = 800,
       height        = 200,
-      margin        = { left: 64, top: 32 },
+      margin        = { left: 64, top: 24 },
       scale         = { x: null, y: null },
       axis          = { x: null, y: null },
       barWidth      = 16
@@ -49,7 +49,7 @@ const timeline = () => {
       // chart area to draw chart and brush on
       chartArea = d3.select('#psSvg')
         .append('g')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+        .attr('transform', `translate(${margin.left}, ${margin.top / 2})`)
     }
 
     const months = formattedData.map(d => parseTime(d.year, d.month))
@@ -67,6 +67,7 @@ const timeline = () => {
       .ticks(d3.timeMonth, 1)
       .tickFormat(d3.timeFormat('%b %Y'))
     axis.y = d3.axisLeft(scale.y)
+      .ticks(5)
 
     d3.select('.axis.axis--x').remove()
     chartArea.append('g')

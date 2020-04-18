@@ -55,6 +55,8 @@ const locationInfo = () => {
         break
     }
 
+    console.log(summarizedData)
+
     d3.select('#infoSvg').remove()
     wrapper
       .append('svg')
@@ -67,6 +69,14 @@ const locationInfo = () => {
       .attr('transform', `translate(0, ${padding.y})`)
 
     const reasons = Object.keys(summarizedData.reasons)
+      .map(id => {
+        return {
+          id: id,
+          total: summarizedData.reasons[id]
+        }
+      })
+      .sort((a, b) => b.total - a.total)
+
     // setup scale
     var scale = {}
     scale.x = d3.scaleLinear()
@@ -75,7 +85,7 @@ const locationInfo = () => {
 
     const lineHeight = barHeight + spacing + fontSize * 1.25
     scale.y = d3.scaleBand()
-      .domain(reasons)
+      .domain(reasons.map(reason => reason.id))
       .range([0, reasons.length * lineHeight])
 
     // grey placeholder
@@ -85,7 +95,7 @@ const locationInfo = () => {
       .append('rect')
         .attr('class', 'location-info__placeholder')
         .attr('x', d => scale.x(0))
-        .attr('y', d => scale.y(d))
+        .attr('y', d => scale.y(d.id))
         .attr('width', width - padding.x - margin.right)
         .attr('height', barHeight)
         .attr('fill', '#999')
@@ -98,17 +108,17 @@ const locationInfo = () => {
       .append('rect')
         .attr('class', 'location-info__data')
         .attr('x', d => scale.x(0))
-        .attr('y', d => scale.y(d))
+        .attr('y', d => scale.y(d.id))
         .attr('width', 0)
         .attr('height', barHeight)
         .attr('fill', d => {
-          const colors = d.split(' ')
+          const colors = d.id.split(' ')
             .map(reasonId => getReasonGroup(reasonId).color2)
           return chroma.average(colors, 'rgb')
         })
         .attr('fill-opacity', '1')
         .transition()
-          .attr('width', d => scale.x(summarizedData.reasons[d]))
+          .attr('width', d => scale.x(d.total))
         .duration(750)
 
     // text - reason code and name
@@ -119,10 +129,10 @@ const locationInfo = () => {
       .append('text')
         .attr('class', 'location-info__text-reason')
         .attr('x', d => scale.x(0))
-        .attr('y', d => scale.y(d) - spacing)
+        .attr('y', d => scale.y(d.id) - spacing)
         .attr('font-size', fontSize)
         .attr('fill', '#999')
-        .text(d => `${d} - ${reasonListEn[d.slice(0, 4)]}`)
+        .text(d => `${d.id} - ${reasonListEn[d.id.slice(0, 4)]}`)
 
     // text - violation count
     infoArea.selectAll('text.location-info__text-count')
@@ -131,11 +141,11 @@ const locationInfo = () => {
       .append('text')
         .attr('class', 'location-info__text-count')
         .attr('x', width - padding.x)
-        .attr('y', d => scale.y(d) + spacing)
+        .attr('y', d => scale.y(d.id) + spacing)
         .attr('font-size', fontSize)
         .attr('text-anchor', 'end')
         .attr('fill', '#999')
-        .text(d => summarizedData.reasons[d])
+        .text(d => d.total)
   }
 
   self.printSummary = () => {
