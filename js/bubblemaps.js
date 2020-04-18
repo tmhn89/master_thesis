@@ -34,7 +34,8 @@ const bubbleMaps = () => {
 
     basemap = new mapboxgl.Map({
       container: wrapperId, // container id
-      style: 'mapbox://styles/mapbox/light-v10',
+      // style: 'mapbox://styles/mapbox/light-v10',
+      style: 'mapbox://styles/tmhn89/ck95vwjsd04rw1io31umkkv1j',
       center: center,
       zoom: 12,
       minZoom: 11
