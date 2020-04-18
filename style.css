@@ -1,5 +1,6 @@
 body {
   margin: 0;
+  background: #F6FBF8;
 }
 
 .loader {
@@ -15,10 +16,38 @@ body {
 
 .content {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  grid-template-rows: 1fr 144px;
+  grid-template-columns: 1fr 2fr;
+  /* grid-template-rows: 1fr 144px; */
   width: 100vw;
   height: 100vh;
+}
+
+.sidebar {
+  display: grid;
+  grid-template-rows: 280px 1fr 280px;
+}
+
+.section {
+  padding: 32px;
+  margin: 16px 32px;
+  border: 1px solid #bbdec2;
+  border-radius: 4px;
+  background: #fff;
+  position: relative;
+}
+
+.section:first-child {
+  margin-top: 32px;
+}
+
+.section:last-child {
+  margin-bottom: 32px;
+}
+
+.section--maps {
+  margin-left: 0;
+  margin-top: 32px;
+  padding: 0;
 }
 
 .maps {

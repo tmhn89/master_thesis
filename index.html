@@ -13,16 +13,19 @@
   </head>
   <body>
     <div class="content">
-      <div class="maps">
+      <div class="sidebar">
+        <div class="section" id="periodSelector"></div>
+        <div class="section" id="stats"></div>
+        <div class="section" id="locationInfo"></div>
+      </div>
+
+      <div class="section section--maps">
         <div class="controls">
           <button class="control__button control__button--explorer">Explorer</button>
         </div>
         <div id="bubblemaps"></div>
         <div class="loader"></div>
       </div>
-      <div id="stats"></div>
-      <div id="periodSelector"></div>
-      <div id="locationInfo"></div>
     </div>
 
     <script src="data/violation_reasons_en.js"></script>
