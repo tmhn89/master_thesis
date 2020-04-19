@@ -1,6 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&display=swap');
+
 body {
   margin: 0;
+  padding: 32px;
+  overflow: hidden;
   background: #F6FBF8;
+  font-family: 'Lato', sans-serif;
 }
 
 .loader {
@@ -16,37 +21,30 @@ body {
 
 .content {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  /* grid-template-columns: minmax(360px, 1fr) 2fr; */
+  grid-template-columns: 392px 1fr;
+  column-gap: 32px;
   /* grid-template-rows: 1fr 144px; */
-  width: 100vw;
-  height: 100vh;
+  height: calc(100vh - 64px);
 }
 
 .sidebar {
   display: grid;
-  grid-template-rows: 280px 1fr 280px;
+  grid-template-rows: fit-content(280px) 1fr;
+  row-gap: 32px;
+  /* overflow: hidden; */
 }
 
 .section {
   padding: 32px;
-  margin: 16px 32px;
   border: 1px solid #bbdec2;
   border-radius: 4px;
   background: #fff;
   position: relative;
-}
-
-.section:first-child {
-  margin-top: 32px;
-}
-
-.section:last-child {
-  margin-bottom: 32px;
+  /* overflow: hidden; */
 }
 
 .section--maps {
-  margin-left: 0;
-  margin-top: 32px;
   padding: 0;
 }
 
@@ -95,6 +93,39 @@ body {
   z-index: 2;
 }
 
+/* timeline */
+.period__summary {
+  font-size: 16px;
+  color: #889e88;
+  margin-bottom: 24px;
+}
+
+.period__total b {
+  font-size: 24px;
+  color: #333;
+  font-weight: 400;
+}
+
+.timeline__month {
+  fill: #27ae60;
+}
+
+.timeline__month:hover,
+.timeline__month--selected {
+  fill: #e67e22;
+}
+
+.timeline__tooltip {
+  position: absolute;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  padding: 4px;
+  font-size: 12px;
+  width: 120px;
+  z-index: 5;
+}
+
 .timeline__detail {
   z-index: 2;
 }
@@ -104,9 +135,30 @@ rect.selection {
   fill-opacity: 0.2
 }
 
+.timeline__brush {
+  position: absolute;
+}
+
 /* reason selector */
 #stats {
   overflow-y: auto;
+}
+
+.reason__top {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+}
+
+.reason__title {
+  font-size: 24px;
+  color: #333;
+  font-weight: 400;
+}
+
+.reason__button-wrap {
+  text-align: right;
+  align-self: center;
+  margin-bottom: 32px;
 }
 
 .reason__select {
@@ -115,7 +167,7 @@ rect.selection {
 
 .reason__list {
   margin: 0;
-  padding: 0 12px;
+  padding: 0;
   font-size: 13px;
   max-height: calc(100% - 60px);
   overflow-y: auto;

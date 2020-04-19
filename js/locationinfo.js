@@ -12,6 +12,9 @@ const locationInfo = () => {
 
   const self = wrapperId => {
     wrapper = d3.select(`#${wrapperId}`)
+
+    if (!wrapper.node()) { return }
+
     width = wrapper.node().getBoundingClientRect().width
     height = wrapper.node().getBoundingClientRect().height
 
