@@ -64,7 +64,7 @@ const reasonList = () => {
         </div>
         <div class="reason__label">
           <span class="reason__id" style="background-color: ${getReasonGroup(d[0]).color2}">${d[0]}</span>
-          <span class="reason__text">${reasonListEn[d[0].slice(0, 4)]}</span>
+          <span class="reason__text">${getReasonText(d[0])}</span>
         </div>
         <div class="reason__count">${d[1]}</div>
       </li>

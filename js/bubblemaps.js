@@ -402,9 +402,10 @@ const bubbleMaps = () => {
       centerProjected   : null,
       radius            : EXPLORER_DEFAULT_RADIUS // meter
     }
-    // self.drawCanvas(visibleMarkers)
-    // self.drawSvg(visibleMarkers)
     self.draw()
+
+    // hide info box
+    infoDispatch.call('locationDeselected')
   }
 
   self.drawMarkersInExplorer = () => {
@@ -456,6 +457,10 @@ const bubbleMaps = () => {
 
   self.getFilter = () => {
     return globalFilter
+  }
+
+  self.isExplorerShowing = () => {
+    return explorer.show
   }
 
   // this component takes all filters, but only care about markers within map boundary

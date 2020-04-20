@@ -8,7 +8,7 @@ var addressBook   = []
 var reasonGroups  = []
 
 var filterDispatch = d3.dispatch('filter', 'filterChanged')
-var infoDispatch = d3.dispatch('locationSelected')
+var infoDispatch = d3.dispatch('locationSelected', 'locationDeselected')
 
 var maps            = bubbleMaps()
 var periodSelector  = timeline()
@@ -50,6 +50,11 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
 
     infoDispatch.on('locationSelected', data => {
       infoBox = infoBox.data(data)
+      infoBox.showBox()
+    })
+
+    infoDispatch.on('locationDeselected', data => {
+      infoBox.hideBox()
     })
   })
 
@@ -60,4 +65,12 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
 const showLoader = state => {
   // document.querySelector('.progress-bar').hidden = !state
   document.querySelector('.loader').hidden = !state
+}
+
+const hideInfoBox = () => {
+  if (!infoBox) { return }
+  infoBox.hideBox()
+  if (maps.isExplorerShowing()) {
+    maps.toggleExplorerState()
+  }
 }
