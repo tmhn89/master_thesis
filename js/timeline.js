@@ -6,7 +6,7 @@ const timeline = () => {
       chartDrawn    = false,
       selected      = [parseTime(2019, 11), parseTime(2019, 11)],
       width         = 800,
-      height        = 100,
+      height        = 72,
       margin        = { left: 0, top: 0 },
       scale         = { x: null, y: null },
       axis          = { x: null, y: null },
@@ -102,7 +102,14 @@ const timeline = () => {
       .data(formattedData)
       .enter()
       .append('rect')
-        .attr('class', 'timeline__month')
+        .attr('class', function (d) {
+          return d3.timeMonth.count(
+              parseTime(d.year, d.month),
+              selected[0]
+            ) === 0
+            ? 'timeline__month timeline__month--selected'
+            : 'timeline__month'
+        })
         .attr('x', d => scale.x(parseTime(d.year, d.month)))
         .attr('y', d => scale.y(d.violations) + margin.top * 2)
         .attr('width', barWidth)
@@ -115,7 +122,6 @@ const timeline = () => {
       .on('mousemove', self.updateTooltip)
       .on('mouseout', self.hideTooltip)
       .on('click', function (d) {
-        console.log(this, d3.event, d)
         d3.selectAll('.timeline__month')
           .attr('class', 'timeline__month')
 
@@ -185,14 +191,18 @@ const timeline = () => {
   }
 
   self.updateTooltip = function (d) {
+    let rightOffset = d3.mouse(this)[0] > 205
+      ? 72
+      : 0
+
     tooltip
       .html(
         `
           <b>${formatTime(parseTime(d.year, d.month))}</b><br/>
-          <b>${d.violations}</b> violations in <b>${d.locations}</b> locations
+          <b>${d.violations}</b> violations
         `
       )
-      .style('left', `${d3.mouse(this)[0] + 15}px`)
+      .style('left', `${d3.mouse(this)[0] + 15 - rightOffset}px`)
       .style('top', `${parseFloat(this.getAttribute(height)) - 2}px`)
       // .style("top", (parseFloat(this.getAttribute(height)) - 2) + "px")
   }
