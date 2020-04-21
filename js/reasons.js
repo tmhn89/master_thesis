@@ -62,11 +62,16 @@ const reasonList = () => {
         <div class="reason__select">
           <input class="reason__checkbox" type="checkbox" data-id="${d[0]}"/>
         </div>
-        <div class="reason__label">
-          <span class="reason__id" style="background-color: ${getReasonGroup(d[0]).color2}">${d[0]}</span>
-          <span class="reason__text">${getReasonText(d[0])}</span>
+        <div class="reason__id">
+          <span class="id__color" style="background-color: ${getReasonGroup(d[0]).color2}"></span>
+          <span class="id__num">${d[0]}</span>
         </div>
-        <div class="reason__count">${d[1]}</div>
+        <div class="reason__label">
+          ${getReasonText(d[0])}
+        </div>
+        <div class="reason__count">
+          ${d[1]}
+        </div>
       </li>
     `)
       .join('')
@@ -74,23 +79,24 @@ const reasonList = () => {
     // <div>${violations} violations across ${locations} locations</div>
     // <div><b>${getAddress(mostViolation.coords)}</b> has the most violation (${mostViolation.total})</div>
     let template = `
-      <div class="reason__top">
-        <div class="reason__title">Reasons:</div>
-        <div class="reason__button-wrap">
-          <button class="reason__button ${topReasonNum === 10 ? 'reason__button--active' : ''}" data-show="10">Top 10</button>
-          <button class="reason__button ${topReasonNum === 25 ? 'reason__button--active' : ''}" data-show="25">Top 25</button>
-          <button class="reason__button ${topReasonNum === 0 ? 'reason__button--active' : ''}" data-show="0">All</button>
-        </div>
+      <div class="reason__button-wrap">
+        <button class="reason__button ${topReasonNum === 10 ? 'reason__button--active' : ''}" data-show="10">Top 10</button>
+        <button class="reason__button ${topReasonNum === 25 ? 'reason__button--active' : ''}" data-show="25">Top 25</button>
+        <button class="reason__button ${topReasonNum === 0 ? 'reason__button--active' : ''}" data-show="0">All</button>
       </div>
       <ul class="reason__list">${topReasonHtml}</ul>
     `
     wrapper.innerHTML = template
 
     // update summary above timeline
-    d3.select('.period__total b')
+    d3.select('.data__field--period-total .field__value')
       .html(violations)
-    d3.select('.period__time')
+    d3.select('.data__field--period-time .field__value')
       .html(formatTime(globalFilter.period[0]))
+    d3.select('.data__field--most-violation .field__label b')
+      .html(`(${mostViolation.total})`)
+    d3.select('.data__field--most-violation .field__value')
+      .html(getAddress(mostViolation.coords))
 
     self.setInteraction()
   }

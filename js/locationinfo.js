@@ -158,12 +158,12 @@ const locationInfo = () => {
       case 'area':
         template = `
           <div class="info__summary">
-            <div class="summary__field">
-              <div class="field__name">Area radius</div>
+            <div class="data__field">
+              <div class="field__label">Area radius</div>
               <div class="field__value">${parseInt(data.radius)} m</div>
             </div>
-            <div class="summary__field">
-              <div class="field__name">Total violations</div>
+            <div class="data__field">
+              <div class="field__label">Total violations</div>
               <div class="field__value">${data.total}</div>
             </div>
           </div>
@@ -171,13 +171,13 @@ const locationInfo = () => {
         break
       case 'point':
         template = `
-          <div class="info__summary">
-            <div class="summary__field">
-              <div class="field__name">Address</div>
+          <div class="info__summary info__summary--point">
+            <div class="data__field data__field--address">
+              <div class="field__label">Address</div>
               <div class="field__value">${getAddress(data.markers[0].coords)}</div>
             </div>
-            <div class="summary__field">
-              <div class="field__name">Total violations</div>
+            <div class="data__field data__field--count">
+              <div class="field__label">Total violations</div>
               <div class="field__value">${data.markers[0].total}</div>
             </div>
           </div>
@@ -187,11 +187,13 @@ const locationInfo = () => {
         break
     }
 
-    wrapper.select('.info__content').node().innerHTML = template
+    wrapper
+      .select('.section--location-summary .section__content')
+      .html(template)
   }
 
   self.showBox = () => {
-    wrapper.node().style.right = '36px'
+    wrapper.node().style.right = '12px'
   }
 
   self.hideBox = () => {
