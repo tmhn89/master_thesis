@@ -8,6 +8,7 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css' rel='stylesheet' />
     <script src='https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js'></script>
+    <link rel="stylesheet" href="//cdn.materialdesignicons.com/5.1.45/css/materialdesignicons.min.css">
 
     <link href="style_rmk.css" rel="stylesheet" />
   </head>
@@ -65,7 +66,24 @@
 
       <div class="right-sidebar">
         <div class="controls">
-          <button class="control__button control__button--explorer">Explorer</button>
+          <button class="control__button control__button--search">
+            <i class="button__illustration button__illustration--off mdi mdi-map-search-outline"></i>
+            <i class="button__illustration button__illustration--on mdi mdi-eye-off-outline"></i>
+            <div class="button__text">Search address</div>
+          </button>
+
+          <button class="control__button control__button--explorer">
+            <i class="button__illustration button__illustration--off mdi mdi-image-filter-tilt-shift"></i>
+            <i class="button__illustration button__illustration--on mdi mdi-eye-off-outline"></i>
+            <div class="button__text">Area explorer</div>
+          </button>
+        </div>
+
+        <div class="section section--explorer-help">
+          <div class="section__content">
+            <i class="mdi mdi-information"></i>
+            Click on the map to explore the violations around
+          </div>
         </div>
 
         <div class="location-info" id="locationInfo">

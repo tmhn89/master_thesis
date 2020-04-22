@@ -201,21 +201,88 @@ body {
   position: fixed;
   top: 8px;
   right: 12px;
-  /* background: rgba(255,255,255,0.8); */
+  background: rgba(255, 255, 255, 0.8);
   box-shadow: -4px 2px 25px rgba(0, 0, 0, 0.1);
   width: 360px;
   height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.right-sidebar .controls {
+  padding: 0 24px;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.control__button {
+  border: none;
+  background: transparent;
+  color: #26ae60;
+  font-size: 13px;
+  outline: none;
+  border: 1px solid #26ae60;
+  border-radius: 2px;
+  padding: 4px 16px;
+  cursor: pointer;
+}
+
+.control__button:hover,
+.control__button--active {
+  background-color: #26ae60;
+  color: #fff;
+}
+
+.button__illustration {
+  font-size: 20px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.button__text {
+  display: inline-block;
+  transform: translateY(2px);
+  font-weight: 500;
+}
+
+.control__button .button__illustration--on {
+  display: none;
+}
+.control__button.control__button--active .button__illustration--on {
+  display: inline-block;
+}
+
+.control__button .button__illustration--off {
+  display: inline-block;
+}
+.control__button.control__button--active .button__illustration--off {
+  display: none;
+}
+
+.section--explorer-help {
+  position: fixed;
+  top: 58px;
+  right: 12px;
+  opacity: 0;
+  font-size: 12px;
+  box-shadow: -4px 2px 25px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.4);
+  width: 360px;
+  color: #8fa799;
+  transition: 0.25s ease-in-out;
 }
 
 #locationInfo {
   position: fixed;
   top: 64px;
-  right: 12px;
+  right: -500px;
   z-index: 9;
   width: 360px;
   background: rgba(255, 255, 255, 0.8);
   box-shadow: -4px 2px 25px rgba(0, 0, 0, 0.1);
   height: 50%;
+  transition: 0.25s ease-in-out;
 }
 
 .info__close {

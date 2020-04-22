@@ -101,6 +101,7 @@ const bubbleMaps = () => {
       if (explorer.show) {
         explorer.centerCoords = e.lngLat
         self.showExplorer()
+        self.hideExplorerGuide()
         return
       }
 
@@ -307,6 +308,8 @@ const bubbleMaps = () => {
 
     if (!explorer.show) {
       self.hideExplorer()
+    } else {
+      self.showExplorerGuide()
     }
   }
 
@@ -393,6 +396,7 @@ const bubbleMaps = () => {
   }
 
   self.hideExplorer = () => {
+    self.hideExplorerGuide()
     d3.select('#eSvg').remove()
     // reset explorer object
     explorer          = {
@@ -482,6 +486,16 @@ const bubbleMaps = () => {
   self.clear = () => {
     var context = d3.select('#d3Canvas').node().getContext('2d')
     context.clearRect(0, 0, width, height)
+  }
+
+  self.showExplorerGuide = () => {
+    d3.select('.section--explorer-help')
+      .style('opacity', '1')
+  }
+
+  self.hideExplorerGuide = () => {
+    d3.select('.section--explorer-help')
+      .style('opacity', '0')
   }
 
   return self
