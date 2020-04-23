@@ -309,6 +309,8 @@ const bubbleMaps = () => {
     if (!explorer.show) {
       self.hideExplorer()
     } else {
+      // hide location info if it is there, to give way for the guide
+      d3.select('#locationInfo').style('right', '-500px')
       self.showExplorerGuide()
     }
   }
