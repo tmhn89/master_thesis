@@ -322,6 +322,10 @@ body {
   width: 39%;
 }
 
+.info__summary.info__summary--area .data__field {
+  width: 32%;
+}
+
 .section--location-reasons .section__content {
   height: 315px;
   overflow-y: scroll;
@@ -329,10 +333,10 @@ body {
   position: relative;
 }
 
-.section--location-reasons .section__content:after {
+.section--location-reasons:after {
   content: ' ';
   width: 100%;
-  height: 24px;
+  height: 64px;
   background: linear-gradient(to bottom, transparent, #fff);
   position: absolute;
   bottom: 0;

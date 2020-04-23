@@ -157,10 +157,14 @@ const locationInfo = () => {
     switch (data.type) {
       case 'area':
         template = `
-          <div class="info__summary">
+          <div class="info__summary info__summary--area"">
             <div class="data__field">
               <div class="field__label">Area radius</div>
               <div class="field__value">${parseInt(data.radius)} m</div>
+            </div>
+            <div class="data__field">
+              <div class="field__label">Walking time</div>
+              <div class="field__value">${self.getWalkingTime(data.radius)}</div>
             </div>
             <div class="data__field">
               <div class="field__label">Total violations</div>
@@ -206,6 +210,17 @@ const locationInfo = () => {
     self.printSummary(data)
     self.drawInfoChart(data)
     return self
+  }
+
+  self.getWalkingTime = radius => {
+    // walking speed: meter per minute
+    const WALKING_SPEED = 70
+
+    let minutePart = Math.floor(radius / WALKING_SPEED)
+    let secondPart = d3
+      .format('0>2')(Math.round((radius / WALKING_SPEED - minutePart) * 60))
+
+    return `${minutePart}:${secondPart}`
   }
 
   return self
