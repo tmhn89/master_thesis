@@ -61,7 +61,7 @@ const locationInfo = () => {
 
     d3.select('#infoSvg').remove()
     wrapper
-      .select('.info__content')
+      .select('.section--location-reasons .section__content')
       .append('svg')
       .attr('id', 'infoSvg')
       .attr('width', width)
