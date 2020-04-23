@@ -99,6 +99,11 @@ body {
   display: none;
 }
 
+.section {
+  margin-bottom: 8px;
+  position: relative;
+}
+
 .section__title {
   padding: 12px 24px;
   color: #666;
@@ -212,8 +217,10 @@ body {
 }
 
 .reason__button-wrap {
-  text-align: right;
-  margin: -46px 24px 20px 0;
+  position: absolute;
+  right: 24px;
+  top: 8px;
+  z-index: 2;
 }
 
 .reason__button {
@@ -372,9 +379,12 @@ body {
 
 .info__close {
   position: absolute;
-  top: 6px;
+  top: 8px;
   right: 18px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
+  z-index: 2;
 }
 
 .info__summary .data__field {
