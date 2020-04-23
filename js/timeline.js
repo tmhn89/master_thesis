@@ -6,11 +6,12 @@ const timeline = () => {
       chartDrawn    = false,
       selected      = [parseTime(2019, 11), parseTime(2019, 11)],
       width         = 800,
-      height        = 200,
-      margin        = { left: 64, top: 24 },
+      height        = 72,
+      margin        = { left: 0, top: 0 },
       scale         = { x: null, y: null },
       axis          = { x: null, y: null },
-      barWidth      = 16
+      barWidth      = 6,
+      tooltip       = null
 
   const self = (wrapperId) => {
     if (!wrapperId) {
@@ -20,7 +21,8 @@ const timeline = () => {
     // set wrapper size
     wrapper = d3.select(`#${wrapperId}`)
     width = wrapper.node().getBoundingClientRect().width
-    height = wrapper.node().getBoundingClientRect().height
+    // height = wrapper.node().getBoundingClientRect().height
+    // height = 144
 
     self.draw()
     filterDispatch
@@ -33,7 +35,7 @@ const timeline = () => {
   self.draw = () => {
     self.setupChart()
     self.drawChart()
-    self.drawBrush()
+    // self.drawBrush()
   }
 
   self.setupChart = () => {
@@ -64,7 +66,7 @@ const timeline = () => {
       .nice()
     // axis
     axis.x = d3.axisBottom(scale.x)
-      .ticks(d3.timeMonth, 1)
+      .ticks(d3.timeMonth, 12)
       .tickFormat(d3.timeFormat('%b %Y'))
     axis.y = d3.axisLeft(scale.y)
       .ticks(5)
@@ -72,16 +74,16 @@ const timeline = () => {
     d3.select('.axis.axis--x').remove()
     chartArea.append('g')
       .attr('class', 'axis axis--x')
-      .attr('transform', `translate(0, ${height - margin.top * 2})`)
+      .attr('transform', `translate(0, ${height})`)
       .call(axis.x)
         .selectAll('text')
         .attr('dy', '15')
         .attr('transform', 'rotate(25)')
 
-    d3.select('.axis.axis--y').remove()
-    chartArea.append('g')
-      .attr('class', 'axis axis--y')
-      .call(axis.y)
+    // d3.select('.axis.axis--y').remove()
+    // chartArea.append('g')
+    //   .attr('class', 'axis axis--y')
+    //   .call(axis.y)
 
     // d3Area = d3.area()
     //   .x(d => scale.x(parseTime(d.year, d.month)))
@@ -100,14 +102,48 @@ const timeline = () => {
       .data(formattedData)
       .enter()
       .append('rect')
+        .attr('class', function (d) {
+          return d3.timeMonth.count(
+              parseTime(d.year, d.month),
+              selected[0]
+            ) === 0
+            ? 'timeline__month timeline__month--selected'
+            : 'timeline__month'
+        })
         .attr('x', d => scale.x(parseTime(d.year, d.month)))
         .attr('y', d => scale.y(d.violations) + margin.top * 2)
         .attr('width', barWidth)
         .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
-        .attr('fill', '#999')
-        .attr('fill-opacity', '0.5')
+        .attr('fill', '#27ae60')
+        .attr('fill-opacity', '1')
         .attr('transform', `translate(${-barWidth / 2}, ${-margin.top * 2})`)
-        .on('mouseover', d => console.log(d, d3.event))
+        .attr('cursor', 'pointer')
+      .on('mouseover', self.showTooltip)
+      .on('mousemove', self.updateTooltip)
+      .on('mouseout', self.hideTooltip)
+      .on('click', function (d) {
+        d3.selectAll('.timeline__month')
+          .attr('class', 'timeline__month')
+
+        d3.select(this)
+          .attr('class', 'timeline__month timeline__month--selected')
+
+        filterDispatch.call(
+          'filter',
+          this,
+          {
+            period: [
+              parseTime(d.year, d.month),
+              parseTime(d.year, d.month)
+            ]
+          }
+        )
+      })
+
+    tooltip = wrapper
+      .append('div')
+      .style('opacity', 0)
+      .attr('class', 'timeline__tooltip')
 
     // chartArea.append('path')
     //   .datum(formattedData)
@@ -148,6 +184,31 @@ const timeline = () => {
     //   .transition()
     //     .attr('cy', d => scale.y(d.violations))
     //     .duration(1000)
+  }
+
+  self.showTooltip = d => {
+    tooltip.style('opacity', 1)
+  }
+
+  self.updateTooltip = function (d) {
+    let rightOffset = d3.mouse(this)[0] > 205
+      ? 72
+      : 0
+
+    tooltip
+      .html(
+        `
+          <b>${formatTime(parseTime(d.year, d.month))}</b><br/>
+          <b>${d.violations}</b> violations
+        `
+      )
+      .style('left', `${d3.mouse(this)[0] + 15 - rightOffset}px`)
+      .style('top', `${parseFloat(this.getAttribute(height)) - 2}px`)
+      // .style("top", (parseFloat(this.getAttribute(height)) - 2) + "px")
+  }
+
+  self.hideTooltip = d => {
+    tooltip.style('opacity', 0)
   }
 
   self.drawBrush = () => {
@@ -214,12 +275,12 @@ const timeline = () => {
     // brush handle
     // from https://observablehq.com/@sarah37/snapping-range-slider-with-d3-brush
     var brushResizePath = function(d) {
-      var e = +(d.type == "e"),
+      var e = +(d.type == 'e'),
           x = e ? 1 : -1,
-          y = height / 2;
-      return "M" + (.5 * x) + "," + y + "A6,6 0 0 " + e + " " + (6.5 * x) + "," + (y + 6) + "V" + (2 * y - 6) +
-        "A6,6 0 0 " + e + " " + (.5 * x) + "," + (2 * y) + "Z" + "M" + (2.5 * x) + "," + (y + 8) + "V" + (2 * y - 8) +
-        "M" + (4.5 * x) + "," + (y + 8) + "V" + (2 * y - 8);
+          y = height / 2 + 17;
+      return 'M' + (.5 * x) + ',' + y + 'A6,6 0 0 ' + e + ' ' + (6.5 * x) + ',' + (y + 6) + 'V' + (2 * y - 6) +
+        'A6,6 0 0 ' + e + ' ' + (.5 * x) + ',' + (2 * y) + 'Z' + 'M' + (2.5 * x) + ',' + (y + 8) + 'V' + (2 * y - 8) +
+        'M' + (4.5 * x) + ',' + (y + 8) + 'V' + (2 * y - 8);
     }
 
     // append brush handle to brush area
@@ -229,9 +290,9 @@ const timeline = () => {
       .join(
         enter => enter.append('path')
           .attr('class', 'brush__handle')
-          .attr('fill', '#d4d4d4')
+          .attr('fill', '#999')
           .attr('fill-opacity', 0.2)
-          .attr('stroke', '#59c154')
+          .attr('stroke', '#aaa')
           .attr('stroke-width', 1)
           .attr('cursor', 'ew-resize')
           .attr('d', brushResizePath)

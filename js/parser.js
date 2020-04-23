@@ -80,6 +80,20 @@ const getReasonGroup = reasonId => {
 }
 
 /**
+ * Get the text for specified reason id
+ * Temporarily take just the first reason
+ * @param {String} reasonId
+ */
+const getReasonText = reasonId => {
+  let langFile = currentLang === 'en'
+    ? reasonListEn
+    : reasonListFi
+
+  let reasonText = langFile[reasonId.slice(0, 4)]
+  return reasonText.replace(/^./, reasonText[0].toUpperCase())
+}
+
+/**
  * Get marker color by mixing the colors of its reason
  * @param {Object} marker
  */

@@ -3,22 +3,33 @@ const locationInfo = () => {
       data        = null,
       width       = 0,
       height      = 0,
-      margin      = { right: 48 },
-      padding     = { x: 12, y: 24 },
+      margin      = { left: 16, right: 64 },
+      padding     = { x: 16, y: 24 },
       spacing     = 6, // spacing between two lines of an item
       barHeight   = 6,
-      fontSize    = 13,
+      fontSize    = 12,
       infoArea    = null
 
   const self = wrapperId => {
     wrapper = d3.select(`#${wrapperId}`)
+
+    if (!wrapper.node()) { return }
+
     width = wrapper.node().getBoundingClientRect().width
     height = wrapper.node().getBoundingClientRect().height
 
     // clear content when filter changed
     filterDispatch
       .on('filterChanged.locationInfo', () => {
-        d3.selectAll(`#${wrapperId} *`).remove()
+        self.hideBox()
+        d3.selectAll(`#${wrapperId} .info__content *`).remove()
+      })
+
+    langDispatch
+      .on('langChanged.locationInfo', () => {
+        if (data) {
+          self.drawInfoChart(data)
+        }
       })
   }
 
@@ -55,10 +66,9 @@ const locationInfo = () => {
         break
     }
 
-    console.log(summarizedData)
-
     d3.select('#infoSvg').remove()
     wrapper
+      .select('.section--location-reasons .section__content')
       .append('svg')
       .attr('id', 'infoSvg')
       .attr('width', width)
@@ -81,9 +91,9 @@ const locationInfo = () => {
     var scale = {}
     scale.x = d3.scaleLinear()
       .domain([0, summarizedData.total])
-      .range([padding.x, width - padding.x - margin.right])
+      .range([padding.x, width - padding.x - margin.left - margin.right])
 
-    const lineHeight = barHeight + spacing + fontSize * 1.25
+    const lineHeight = barHeight + spacing + fontSize * 1.75
     scale.y = d3.scaleBand()
       .domain(reasons.map(reason => reason.id))
       .range([0, reasons.length * lineHeight])
@@ -94,7 +104,7 @@ const locationInfo = () => {
       .enter()
       .append('rect')
         .attr('class', 'location-info__placeholder')
-        .attr('x', d => scale.x(0))
+        .attr('x', d => scale.x(0) + margin.left)
         .attr('y', d => scale.y(d.id))
         .attr('width', width - padding.x - margin.right)
         .attr('height', barHeight)
@@ -107,7 +117,7 @@ const locationInfo = () => {
       .enter()
       .append('rect')
         .attr('class', 'location-info__data')
-        .attr('x', d => scale.x(0))
+        .attr('x', d => scale.x(0) + margin.left)
         .attr('y', d => scale.y(d.id))
         .attr('width', 0)
         .attr('height', barHeight)
@@ -128,11 +138,11 @@ const locationInfo = () => {
       .enter()
       .append('text')
         .attr('class', 'location-info__text-reason')
-        .attr('x', d => scale.x(0))
+        .attr('x', d => scale.x(0) + margin.left)
         .attr('y', d => scale.y(d.id) - spacing)
         .attr('font-size', fontSize)
-        .attr('fill', '#999')
-        .text(d => `${d.id} - ${reasonListEn[d.id.slice(0, 4)]}`)
+        .attr('fill', '#8fa799')
+        .text(d => `${d.id} - ${getReasonText(d.id)}`)
 
     // text - violation count
     infoArea.selectAll('text.location-info__text-count')
@@ -140,11 +150,11 @@ const locationInfo = () => {
       .enter()
       .append('text')
         .attr('class', 'location-info__text-count')
-        .attr('x', width - padding.x)
+        .attr('x', scale.x(0) + margin.left - padding.x * 2)
         .attr('y', d => scale.y(d.id) + spacing)
-        .attr('font-size', fontSize)
-        .attr('text-anchor', 'end')
-        .attr('fill', '#999')
+        .attr('font-size', fontSize + 2)
+        // .attr('text-anchor', 'end')
+        .attr('fill', '#666')
         .text(d => d.total)
   }
 
@@ -154,21 +164,51 @@ const locationInfo = () => {
     switch (data.type) {
       case 'area':
         template = `
-          <div>Radius: ${parseInt(data.radius)} m</div>
-          <div>Total violations: ${data.total}</div>
+          <div class="info__summary info__summary--area"">
+            <div class="data__field">
+              <div class="field__label">Area radius</div>
+              <div class="field__value">${parseInt(data.radius)} m</div>
+            </div>
+            <div class="data__field">
+              <div class="field__label">Walking time</div>
+              <div class="field__value">${self.getWalkingTime(data.radius)}</div>
+            </div>
+            <div class="data__field">
+              <div class="field__label">Total violations</div>
+              <div class="field__value">${data.total}</div>
+            </div>
+          </div>
         `
         break
       case 'point':
         template = `
-          <div>${getAddress(data.markers[0].coords)}</div>
-          <div>Total violations: ${data.markers[0].total}</div>
+          <div class="info__summary info__summary--point">
+            <div class="data__field data__field--address">
+              <div class="field__label">Address</div>
+              <div class="field__value">${getAddress(data.markers[0].coords)}</div>
+            </div>
+            <div class="data__field data__field--count">
+              <div class="field__label">Total violations</div>
+              <div class="field__value">${data.markers[0].total}</div>
+            </div>
+          </div>
         `
         break
       default:
         break
     }
 
-    wrapper.node().innerHTML = template
+    wrapper
+      .select('.section--location-summary .section__content')
+      .html(template)
+  }
+
+  self.showBox = () => {
+    wrapper.node().style.right = '12px'
+  }
+
+  self.hideBox = () => {
+    wrapper.node().style.right = '-500px'
   }
 
   self.data = value => {
@@ -177,6 +217,17 @@ const locationInfo = () => {
     self.printSummary(data)
     self.drawInfoChart(data)
     return self
+  }
+
+  self.getWalkingTime = radius => {
+    // walking speed: meter per minute
+    const WALKING_SPEED = 70
+
+    let minutePart = Math.floor(radius / WALKING_SPEED)
+    let secondPart = d3
+      .format('0>2')(Math.round((radius / WALKING_SPEED - minutePart) * 60))
+
+    return `${minutePart}:${secondPart}`
   }
 
   return self

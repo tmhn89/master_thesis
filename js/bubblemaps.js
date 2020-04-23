@@ -101,6 +101,7 @@ const bubbleMaps = () => {
       if (explorer.show) {
         explorer.centerCoords = e.lngLat
         self.showExplorer()
+        self.hideExplorerGuide()
         return
       }
 
@@ -307,6 +308,8 @@ const bubbleMaps = () => {
 
     if (!explorer.show) {
       self.hideExplorer()
+    } else {
+      self.showExplorerGuide()
     }
   }
 
@@ -393,6 +396,7 @@ const bubbleMaps = () => {
   }
 
   self.hideExplorer = () => {
+    self.hideExplorerGuide()
     d3.select('#eSvg').remove()
     // reset explorer object
     explorer          = {
@@ -402,9 +406,10 @@ const bubbleMaps = () => {
       centerProjected   : null,
       radius            : EXPLORER_DEFAULT_RADIUS // meter
     }
-    // self.drawCanvas(visibleMarkers)
-    // self.drawSvg(visibleMarkers)
     self.draw()
+
+    // hide info box
+    infoDispatch.call('locationDeselected')
   }
 
   self.drawMarkersInExplorer = () => {
@@ -458,6 +463,10 @@ const bubbleMaps = () => {
     return globalFilter
   }
 
+  self.isExplorerShowing = () => {
+    return explorer.show
+  }
+
   // this component takes all filters, but only care about markers within map boundary
   self.formatData = () => {
     filteredData = filterData(data, self.getFilter())
@@ -477,6 +486,16 @@ const bubbleMaps = () => {
   self.clear = () => {
     var context = d3.select('#d3Canvas').node().getContext('2d')
     context.clearRect(0, 0, width, height)
+  }
+
+  self.showExplorerGuide = () => {
+    d3.select('.section--explorer-help')
+      .style('opacity', '1')
+  }
+
+  self.hideExplorerGuide = () => {
+    d3.select('.section--explorer-help')
+      .style('opacity', '0')
   }
 
   return self
