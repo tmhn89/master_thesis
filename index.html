@@ -20,7 +20,11 @@
     <div class="content">
       <div class="left-sidebar">
         <div class="page-title">
-          Helsinki parking violations
+          <span>Helsinki parking violations<span>
+          <div class="sidebar__visibility-control" onclick="changeSidebarVisibility()">
+              <i class="visibility__icon visibility__icon--on mdi mdi-chevron-right"></i>
+              <i class="visibility__icon visibility__icon--off mdi mdi-chevron-left"></i>
+          </div>
         </div>
 
         <div class="section section--period">
@@ -106,13 +110,12 @@
         </div>
 
         <div class="location-info" id="locationInfo">
-          <div class="info__close">
-            <img src="images/close.svg" onclick="hideInfoBox()" />
-          </div>
-
           <div class="section section--location-summary">
             <div class="section__title">
-              Location summary
+              <span>Location summary</span>
+              <div class="info__close">
+                <img src="images/close.svg" onclick="hideInfoBox()" />
+              </div>
             </div>
             <div class="section__content">
             </div>
