@@ -102,3 +102,11 @@ const changeSectionVisibility = event => {
     .classList
     .toggle('section--off')
 }
+
+const changeSidebarVisibility = () => {
+  d3
+    .select('.left-sidebar')
+    .node()
+    .classList
+    .toggle('left-sidebar--off')
+}
