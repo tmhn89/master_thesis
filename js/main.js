@@ -89,3 +89,16 @@ const changeLanguage = () => {
   // change violation text
   langDispatch.call('langChanged')
 }
+
+/**
+ * Handle when visibility control of a section clicked
+ */
+const changeSectionVisibility = event => {
+  event
+    .target
+    .parentNode
+    .parentNode
+    .parentNode
+    .classList
+    .toggle('section--off')
+}

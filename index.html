@@ -24,7 +24,11 @@
 
         <div class="section section--period">
           <div class="section__title">
-            Period: Jan 2018 - Dec 2019
+            <span>Period: Jan 2018 - Dec 2019</span>
+            <div class="section__visibility-control" onclick="changeSectionVisibility(event)">
+              <i class="visibility__icon visibility__icon--on mdi mdi-chevron-down"></i>
+              <i class="visibility__icon visibility__icon--off mdi mdi-chevron-up"></i>
+            </div>
           </div>
           <div class="section__content">
             <div id="periodSelector"></div>
@@ -33,7 +37,11 @@
 
         <div class="section section--summary">
           <div class="section__title">
-            Selected month summary
+            <span>Selected month summary</span>
+            <div class="section__visibility-control" onclick="changeSectionVisibility(event)">
+              <i class="visibility__icon visibility__icon--on mdi mdi-chevron-down"></i>
+              <i class="visibility__icon visibility__icon--off mdi mdi-chevron-up"></i>
+            </div>
           </div>
           <div class="section__content">
             <div class="period__summary">

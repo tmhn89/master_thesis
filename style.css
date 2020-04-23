@@ -74,6 +74,37 @@ body {
   font-weight: 600;
   font-size: 12px;
   line-height: 14px;
+  position: relative;
+}
+
+.section__visibility-control {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+  line-height: 24px;
+  cursor: pointer
+}
+
+.section .visibility__icon--on {
+  display: none;
+}
+.section .visibility__icon--off {
+  display: inline-block;
+}
+
+.section--off .visibility__icon--on {
+  display: inline-block;
+}
+.section--off .visibility__icon--off {
+  display: none;
+}
+
+.section--off .section__content {
+  display: none;
 }
 
 .section__content {
