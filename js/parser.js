@@ -84,12 +84,10 @@ const getReasonGroup = reasonId => {
  * Temporarily take just the first reason
  * @param {String} reasonId
  */
-const getReasonText = (reasonId, lang) => {
-  let langFile = reasonListFi
-
-  if (!lang || lang === 'en') {
-    let langFile = reasonListEn
-  }
+const getReasonText = reasonId => {
+  let langFile = currentLang === 'en'
+    ? reasonListEn
+    : reasonListFi
 
   let reasonText = langFile[reasonId.slice(0, 4)]
   return reasonText.replace(/^./, reasonText[0].toUpperCase())

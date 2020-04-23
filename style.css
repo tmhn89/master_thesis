@@ -276,6 +276,11 @@ body {
   display: none;
 }
 
+.control__button--lang .button__text .text__lang {
+  display: inline-block;
+  width: 20px;
+}
+
 .section--explorer-help {
   position: fixed;
   top: 58px;

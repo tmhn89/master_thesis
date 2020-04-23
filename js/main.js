@@ -4,11 +4,13 @@ const SNAPPING_ANIMATION_DURATION = 300
 const EXPLORER_DEFAULT_RADIUS     = 350 // meter
 const EXPLORER_MAX_RADIUS         = 1000 // meter
 
+var currentLang   = 'fi'
 var addressBook   = []
 var reasonGroups  = []
 
 var filterDispatch = d3.dispatch('filter', 'filterChanged')
 var infoDispatch = d3.dispatch('locationSelected', 'locationDeselected')
+var langDispatch = d3.dispatch('langChanged')
 
 var maps            = bubbleMaps()
 var periodSelector  = timeline()
@@ -73,4 +75,17 @@ const hideInfoBox = () => {
   if (maps.isExplorerShowing()) {
     maps.toggleExplorerState()
   }
+}
+
+const changeLanguage = () => {
+  currentLang = currentLang === 'en'
+    ? 'fi'
+    : 'en'
+
+  // change button text
+  d3.select('.control__button--lang .button__text .text__lang')
+    .html(currentLang.toUpperCase())
+
+  // change violation text
+  langDispatch.call('langChanged')
 }

@@ -24,6 +24,13 @@ const locationInfo = () => {
         self.hideBox()
         d3.selectAll(`#${wrapperId} .info__content *`).remove()
       })
+
+    langDispatch
+      .on('langChanged.locationInfo', () => {
+        if (data) {
+          self.drawInfoChart(data)
+        }
+      })
   }
 
   self.drawInfoChart = data => {

@@ -68,16 +68,24 @@
 
       <div class="right-sidebar">
         <div class="controls">
-          <button class="control__button control__button--search">
+          <!-- <button class="control__button control__button--search">
             <i class="button__illustration button__illustration--off mdi mdi-map-search-outline"></i>
             <i class="button__illustration button__illustration--on mdi mdi-eye-off-outline"></i>
             <div class="button__text">Search address</div>
-          </button>
+          </button> -->
 
           <button class="control__button control__button--explorer">
             <i class="button__illustration button__illustration--off mdi mdi-image-filter-tilt-shift"></i>
             <i class="button__illustration button__illustration--on mdi mdi-eye-off-outline"></i>
             <div class="button__text">Area explorer</div>
+          </button>
+
+          <button class="control__button control__button--lang" onclick="changeLanguage()">
+            <i class="button__illustration mdi mdi-translate"></i>
+            <div class="button__text">
+              Language:
+              <b class="text__lang">FI</b>
+            </div>
           </button>
         </div>
 

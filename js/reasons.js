@@ -19,7 +19,12 @@ const reasonList = () => {
         self.printSummary(wrapper, formattedData)
       })
 
-    // add interaction
+    langDispatch
+      .on('langChanged.reasons', () => {
+        if (data) {
+          self.printSummary(wrapper, formattedData)
+        }
+      })
   }
 
   /**
