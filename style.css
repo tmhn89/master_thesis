@@ -250,7 +250,7 @@ body {
 .reason__list {
   list-style: none;
   padding: 0 24px;
-  height: calc(100vh - 454px);
+  /* height: calc(100vh - 454px); */
   overflow-y: auto;
 }
 
