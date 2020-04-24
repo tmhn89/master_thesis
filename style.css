@@ -250,7 +250,7 @@ body {
 .reason__list {
   list-style: none;
   padding: 0 24px;
-  height: calc(100vh - 454px);
+  /* height: calc(100vh - 454px); */
   overflow-y: auto;
 }
 
@@ -456,6 +456,12 @@ body {
 
 .group-legend.group-legend--off {
   top: -500px;
+}
+
+.group__header {
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 8px;
 }
 
 .group__list {

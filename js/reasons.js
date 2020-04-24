@@ -92,6 +92,7 @@ const reasonList = () => {
       <ul class="reason__list">${topReasonHtml}</ul>
     `
     wrapper.innerHTML = template
+    adaptReasonListLength()
 
     // update summary above timeline
     d3.select('.data__field--period-total .field__value')

@@ -106,6 +106,20 @@ const changeSectionVisibility = event => {
     .parentNode
     .classList
     .toggle('section--off')
+
+  adaptReasonListLength()
+}
+
+const adaptReasonListLength = () => {
+  const reasonListTop = document
+    .querySelector('.reason__list')
+    .getBoundingClientRect()
+    .top
+  const adaptedHeight = window.innerHeight - reasonListTop - 24
+
+  d3
+    .select('.reason__list')
+    .style('height', `${adaptedHeight}px`)
 }
 
 const changeSidebarVisibility = () => {
@@ -141,7 +155,15 @@ const showLegendBox = () => {
 }
 
 const renderGroupLegend = () => {
-  let colorItemHtml = reasonGroups.map(group => `
+  let colorItemHtml = `
+    <li class="group__item">
+      <div></div>
+      <div class="group__header">Violation group</div>
+      <div class="group__header">Code starts with</div>
+    <li>
+  `
+
+  colorItemHtml += reasonGroups.map(group => `
     <li class="group__item">
       <div class="group__color" style="background-color: ${group.color2}"></div>
       <div class="group__name">
