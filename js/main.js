@@ -155,7 +155,15 @@ const showLegendBox = () => {
 }
 
 const renderGroupLegend = () => {
-  let colorItemHtml = reasonGroups.map(group => `
+  let colorItemHtml = `
+    <li class="group__item">
+      <div></div>
+      <div class="group__header">Violation group</div>
+      <div class="group__header">Code starts with</div>
+    <li>
+  `
+
+  colorItemHtml += reasonGroups.map(group => `
     <li class="group__item">
       <div class="group__color" style="background-color: ${group.color2}"></div>
       <div class="group__name">
