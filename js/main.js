@@ -29,6 +29,7 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
     // save default global variables
     addressBook   = data[0]
     reasonGroups  = data[1]
+    renderGroupLegend()
 
     periodSelector = periodSelector.data(data[2])
     periodSelector('periodSelector')
@@ -57,6 +58,10 @@ Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
 
     infoDispatch.on('locationDeselected', data => {
       infoBox.hideBox()
+    })
+
+    langDispatch.on('langChanged', () => {
+      renderGroupLegend()
     })
   })
 
@@ -109,4 +114,47 @@ const changeSidebarVisibility = () => {
     .node()
     .classList
     .toggle('left-sidebar--off')
+}
+
+const hideLegendBox = () => {
+  d3
+    .select('.group-legend__trigger')
+    .style('opacity', 1)
+
+  d3
+    .select('.group-legend')
+    .node()
+    .classList
+    .add('group-legend--off')
+}
+
+const showLegendBox = () => {
+  d3
+    .select('.group-legend__trigger')
+    .style('opacity', 0)
+
+  d3
+    .select('.group-legend')
+    .node()
+    .classList
+    .remove('group-legend--off')
+}
+
+const renderGroupLegend = () => {
+  let colorItemHtml = reasonGroups.map(group => `
+    <li class="group__item">
+      <div class="group__color" style="background-color: ${group.color2}"></div>
+      <div class="group__name">
+        ${currentLang === 'en' ? group.name_en : group.name_fi}
+      </div>
+      <div class="group__ids">
+        ${group.ids.join(', ')}
+      </div>
+    </li>
+  `)
+  .join('')
+
+  d3
+    .select('.section--group .group__list')
+    .html(colorItemHtml)
 }
