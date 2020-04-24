@@ -68,9 +68,26 @@
 
         <div class="section section--reasons">
           <div class="section__title">
-            Violation reasons
+            <span>Violation reasons</span>
+            <span class="group-legend__trigger" onclick="showLegendBox()">
+              <i class="mdi mdi-help-circle"></i>
+            </span>
           </div>
           <div class="section__content" id="stats">
+          </div>
+        </div>
+
+        <div class="group-legend group-legend--off">
+          <div class="section section--group">
+            <div class="section__title">
+              <span>Violation groups and color</span>
+              <div class="info__close">
+                <img src="images/close.svg" onclick="hideLegendBox()" />
+              </div>
+            </div>
+            <div class="section__content">
+              <ul class="group__list"></ul>
+            </div>
           </div>
         </div>
       </div>

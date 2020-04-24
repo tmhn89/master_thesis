@@ -285,7 +285,7 @@ body {
 /* right sidebar */
 .right-sidebar {
   position: fixed;
-  top: 8px;
+  top: 16px;
   right: 12px;
   background: rgba(255, 255, 255, 0.8);
   box-shadow: -4px 2px 25px rgba(0, 0, 0, 0.1);
@@ -353,7 +353,7 @@ body {
 
 .section--explorer-help {
   position: fixed;
-  top: 58px;
+  top: 66px;
   right: 12px;
   opacity: 0;
   font-size: 12px;
@@ -366,7 +366,7 @@ body {
 
 #locationInfo {
   position: fixed;
-  top: 64px;
+  top: 66px;
   right: -500px;
   z-index: 9;
   width: 360px;
@@ -427,4 +427,58 @@ body {
   top: 0;
   left: 0;
   z-index: 4;
+}
+
+/* group legend */
+.group-legend__trigger {
+  display: inline;
+  color: #27ae60;
+  font-size: 16px;
+  vertical-align: middle;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: 0.25s ease-in-out;
+}
+
+.group-legend__trigger:hover {
+  color: #2ecc71;
+}
+
+.group-legend {
+  position: absolute;
+  top: 16px;
+  right: -102%;
+  width: 360px;
+  background: rgba(255,255,255, 0.8);
+  box-shadow: 4px 2px 25px rgba(0, 0, 0, 0.1);
+  transition: 0.25s ease-in-out;
+}
+
+.group-legend.group-legend--off {
+  top: -500px;
+}
+
+.group__list {
+  padding: 0;
+  list-style: none;
+  font-size: 10px;
+}
+
+.group__item {
+  display: grid;
+  grid-template-columns: 12px 1fr 80px;
+  grid-column-gap: 8px;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.group__color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+.group__ids {
+  color: #8fa799;
 }
