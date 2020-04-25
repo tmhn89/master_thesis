@@ -104,8 +104,16 @@ const bubbleMaps = () => {
     basemap.on('click', (e) => {
       let clickedMarkers = basemap
         .queryRenderedFeatures(e.point, { layers: ['violation'] })
-      console.log('clicked', clickedMarkers)
 
+      if (clickedMarkers.length > 0) {
+        console.log(clickedMarkers)
+        infoDispatch.call('locationSelected', this, {
+          type: 'point',
+          markers: [self.getLocationInfo(clickedMarkers)]
+        })
+      }
+
+      ////////////////////mapbox click event end//////////////////////////////
       if (explorer.show) {
         explorer.centerCoords = e.lngLat
         self.showExplorer()
@@ -127,6 +135,32 @@ const bubbleMaps = () => {
     basemap.on('flyend', e => {
       // catch flyend event here
     })
+  }
+
+  // compose location info object based on markers under mouseclick on the map
+  self.getLocationInfo = clickedMarkers => {
+    const markerProps = clickedMarkers.map(d => d.properties)
+    let result = {
+      coords: `${d3.format('.7f')(markerProps[0].lat)} ${d3.format('.7f')(markerProps[0].lng)}`,
+      reasons: {},
+      total: 0
+    }
+
+    markerProps.forEach(marker => {
+      if (!result.reasons[marker.reason]) {
+        result.reasons[marker.reason] = 0
+      }
+      result.reasons[marker.reason] += marker.occurrence
+    })
+
+    result.total = total = markerProps
+      .reduce(
+        (total, current) => total + parseInt(current.occurrence),
+        0
+      )
+
+    console.log(markerProps, result)
+    return result
   }
 
   self.drawMapboxMarkers = () => {
