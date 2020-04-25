@@ -152,10 +152,9 @@ const bubbleMaps = () => {
         'circle-opacity': 0.5,
         'circle-radius': [
           'interpolate', ['linear'], ['zoom'],
-          12, ['max', ['/', ['get', 'occurrence'], 5], 2],
+          12, ['max', ['/', ['get', 'occurrence'], 3], 2],
           20, ['max', ['*', ['get', 'occurrence'], 2], 10]
         ],
-        // 'circle-color': getMarkerColor(['get', 'reason'])
         'circle-color': self.getMapboxMarkerColor()
       },
       'source-layer': 'latlng_separated_2018_2019-7haajx',
@@ -180,7 +179,17 @@ const bubbleMaps = () => {
     ]
 
     if (self.getFilter().reasons && self.getFilter().reasons.length > 0) {
-      mapboxFilter.push(['in', 'reason', ...self.getFilter().reasons])
+      // have to split since mapbox automatically cast id > 1000 into integer
+      let mapboxReason = self
+        .getFilter()
+        .reasons
+        .map(reason => {
+          return parseInt(reason) > 1000
+            ? parseInt(reason)
+            : reason
+        })
+
+      mapboxFilter.push(['in', 'reason', ...mapboxReason])
     }
 
     basemap.setFilter('violation', mapboxFilter)
