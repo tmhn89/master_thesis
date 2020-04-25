@@ -47,13 +47,16 @@ const bubbleMaps = () => {
       height = basemap.getContainer().clientHeight
 
       // generate marker list
-      self.formatData()
+      // self.formatData()
 
+      self.draw()
       // start listen to global filter
       filterDispatch
         .on('filterChanged.maps', () => {
-          self.formatData()
-          self.draw()
+          // self.formatData()
+          // self.draw()
+          self.filterMapboxMarkers()
+          showLoader(false)
         })
 
       // set explorer activity
@@ -62,7 +65,8 @@ const bubbleMaps = () => {
     })
 
     basemap.on('idle', () => {
-      self.draw()
+      console.log('idle')
+      // self.draw()
     })
 
     basemap.on('move', () => {
@@ -77,7 +81,7 @@ const bubbleMaps = () => {
       if (explorer.show && explorer.centerCoords) {
         self.showExplorer()
       } else {
-        self.drawCanvas(allMarkers)
+        // self.drawCanvas(allMarkers)
       }
     })
 
@@ -87,17 +91,21 @@ const bubbleMaps = () => {
         flying = false
       }
 
-      self.getVisibleMarkers()
+      // self.getVisibleMarkers()
     })
 
     basemap.on('resize', () => {
       // set map-related component dimension again
       width = basemap.getContainer().clientWidth
       height = basemap.getContainer().clientHeight
-      self.draw()
+      // self.draw()
     })
 
     basemap.on('click', (e) => {
+      let clickedMarkers = basemap
+        .queryRenderedFeatures(e.point, { layers: ['violation'] })
+      console.log('clicked', clickedMarkers)
+
       if (explorer.show) {
         explorer.centerCoords = e.lngLat
         self.showExplorer()
@@ -121,23 +129,114 @@ const bubbleMaps = () => {
     })
   }
 
+  self.drawMapboxMarkers = () => {
+    console.log(basemap, data)
+    if (basemap.getLayer('violation')) {
+      basemap.removeLayer('violation')
+      basemap.removeSource('violation')
+    }
+
+    basemap.addSource('violation', {
+      type: 'vector',
+      url: 'mapbox://tmhn89.1yp4pdm1'
+    })
+
+    let violationLayer = {
+      'id': 'violation',
+      'type': 'circle',
+      'source': 'violation',
+      'layout': {
+        'visibility': 'visible'
+      },
+      'paint': {
+        'circle-opacity': 0.5,
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          12, ['max', ['/', ['get', 'occurrence'], 5], 2],
+          20, ['max', ['*', ['get', 'occurrence'], 2], 10]
+        ],
+        // 'circle-color': getMarkerColor(['get', 'reason'])
+        'circle-color': self.getMapboxMarkerColor()
+      },
+      'source-layer': 'latlng_separated_2018_2019-7haajx',
+      'filter': [
+        'all',
+        ['==', 'year', self.getFilter().period[0].getFullYear()],
+        ['==', 'month', self.getFilter().period[0].getMonth() + 1]
+      ]
+    }
+
+    basemap.addLayer(violationLayer)
+    self.filterMapboxMarkers()
+    // console.log(self.getMapboxMarkerColor())
+    showLoader(false)
+  }
+
+  self.filterMapboxMarkers = () => {
+    let mapboxFilter = [
+      'all',
+        ['==', 'year', self.getFilter().period[0].getFullYear()],
+        ['==', 'month', self.getFilter().period[0].getMonth() + 1]
+    ]
+
+    if (self.getFilter().reasons && self.getFilter().reasons.length > 0) {
+      mapboxFilter.push(['in', 'reason', ...self.getFilter().reasons])
+    }
+
+    basemap.setFilter('violation', mapboxFilter)
+  }
+
+  self.getMapboxMarkerColor = () => {
+    const allReasons = [...new Set(data.map(d => d.reason))]
+    const allColors = allReasons.map(reason => {
+      colors = reason.split(' ').map(id => getReasonGroup(id).color2)
+      return {
+        reason: reason,
+        color: chroma.average(colors, 'rgb').hex()
+      }
+    })
+
+    console.log('color', allColors)
+
+    // const allReasons = Object.keys(reasonListEn)
+    // const allColors = allReasons
+    //   .map(reason => getReasonGroup(reason).color2)
+    let colorExpression = [
+      'match',
+      ['to-string', ['get', 'reason']]
+    ]
+
+    allColors.forEach(row => {
+      colorExpression.push(row.reason)
+      colorExpression.push(row.color)
+    })
+
+    // fallback value
+    colorExpression.push('#999')
+    return colorExpression
+  }
+
   self.draw = () => {
     showLoader(true)
-    self.drawLegend()
-
-    if (explorer.show && explorer.centerCoords) {
-      self.showExplorer()
-      showLoader(false)
-      return
-    }
-
-    self.drawCanvas(allMarkers)
-    // draw only markers visible on map when zoom level is greater than 14
-    if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
-      self.drawSvg(visibleMarkers)
-    }
-
+    self.drawMapboxMarkers()
     showLoader(false)
+
+    // showLoader(true)
+    // self.drawLegend()
+
+    // if (explorer.show && explorer.centerCoords) {
+    //   self.showExplorer()
+    //   showLoader(false)
+    //   return
+    // }
+
+    // self.drawCanvas(allMarkers)
+    // // draw only markers visible on map when zoom level is greater than 14
+    // if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
+    //   self.drawSvg(visibleMarkers)
+    // }
+
+    // showLoader(false)
   }
 
   self.drawCanvas = markers => {
