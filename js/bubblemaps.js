@@ -46,15 +46,10 @@ const bubbleMaps = () => {
       width = basemap.getContainer().clientWidth
       height = basemap.getContainer().clientHeight
 
-      // generate marker list
-      // self.formatData()
-
       self.draw()
       // start listen to global filter
       filterDispatch
         .on('filterChanged.maps', () => {
-          // self.formatData()
-          // self.draw()
           self.filterMapboxMarkers()
           showLoader(false)
         })
@@ -64,24 +59,10 @@ const bubbleMaps = () => {
         .on('click', self.toggleExplorerState)
     })
 
-    basemap.on('idle', () => {
-      console.log('idle')
-      // self.draw()
-    })
-
     basemap.on('move', () => {
-      // only redraw canvas on low zoom level when less than 3 months selected
-      let periodLength = d3.timeMonth.count(...self.getFilter().period) + 1  // months
-      if (periodLength >= 3 && basemap.getZoom() < ZOOM_INTERACTION_LEVEL) {
-        self.clear()
-        return
-      }
       // only draw on canvas when map move
-      d3.select('#d3Svg').remove()
       if (explorer.show && explorer.centerCoords) {
         self.showExplorer()
-      } else {
-        // self.drawCanvas(allMarkers)
       }
     })
 
@@ -90,8 +71,6 @@ const bubbleMaps = () => {
         basemap.fire('flyend')
         flying = false
       }
-
-      // self.getVisibleMarkers()
     })
 
     basemap.on('resize', () => {
@@ -116,6 +95,7 @@ const bubbleMaps = () => {
       ////////////////////mapbox click event end//////////////////////////////
       if (explorer.show) {
         explorer.centerCoords = e.lngLat
+        console.log(e)
         self.showExplorer()
         self.hideExplorerGuide()
         return
@@ -166,8 +146,11 @@ const bubbleMaps = () => {
   self.drawMapboxMarkers = () => {
     console.log(basemap, data)
     if (basemap.getLayer('violation')) {
-      basemap.removeLayer('violation')
-      basemap.removeSource('violation')
+      console.log('thru here')
+      // basemap.removeLayer('violation')
+      // basemap.removeSource('violation')
+      basemap.setPaintProperty('violation', 'circle-opacity', 0.5)
+      return
     }
 
     basemap.addSource('violation', {
@@ -263,101 +246,6 @@ const bubbleMaps = () => {
     showLoader(true)
     self.drawMapboxMarkers()
     showLoader(false)
-
-    // showLoader(true)
-    // self.drawLegend()
-
-    // if (explorer.show && explorer.centerCoords) {
-    //   self.showExplorer()
-    //   showLoader(false)
-    //   return
-    // }
-
-    // self.drawCanvas(allMarkers)
-    // // draw only markers visible on map when zoom level is greater than 14
-    // if (basemap.getZoom() >= ZOOM_INTERACTION_LEVEL) {
-    //   self.drawSvg(visibleMarkers)
-    // }
-
-    // showLoader(false)
-  }
-
-  self.drawCanvas = markers => {
-    self.setupProjection()
-    const filter = self.getFilter()
-
-    if (!document.getElementById('d3Canvas')) {
-      d3.select(basemap.getCanvasContainer())
-        .append('canvas')
-        .attr('id', 'd3Canvas')
-        .attr('width', width)
-        .attr('height', height)
-    }
-
-    // get context and clear the canvas
-    var context = d3.select('#d3Canvas').node().getContext('2d')
-    context.clearRect(0, 0, width, height)
-
-    markers.forEach(marker => {
-      let x = getProjectedPoint(marker.coords, projection)[0]
-      let y = getProjectedPoint(marker.coords, projection)[1]
-      let radius = getMarkerRadius(marker.total, basemap.getZoom(), filter.period)
-      // iterate marker list and draw
-      context.strokeStyle = getMarkerColor(marker)
-      context.fillStyle = chroma(getMarkerColor(marker)).alpha(0.5)
-
-      context.lineWidth = 2
-
-      context.beginPath()
-      context.arc(x, y, radius, 0, 2 * Math.PI, true)
-      context.fill();
-      context.closePath()
-    })
-  }
-
-  /**
-   * draw invisible svg markers on top of canvas for interaction
-   */
-  self.drawSvg = markers => {
-    self.setupProjection()
-    const filter = self.getFilter()
-
-    d3.select('#d3Svg').remove()
-    svg = d3.select(basemap.getCanvasContainer())
-      .append('svg')
-      .attr('id', 'd3Svg')
-      .attr('width', width)
-      .attr('height', height)
-
-    svg
-      .selectAll('.violation-marker')
-      .data(markers)
-      .enter()
-      .append('circle')
-        .attr('class', 'violation-marker')
-        .attr('cx', d => { return getProjectedPoint(d.coords, projection)[0] })
-        .attr('cy', d => { return getProjectedPoint(d.coords, projection)[1] })
-        .style('fill', 'transparent')
-        .attr('fill-opacity', 0.5)
-        .attr('r', d => getMarkerRadius(d.total, basemap.getZoom(), filter.period))
-        .attr('cursor', 'pointer')
-      // .on('click', d => printLegend(d))
-      .on('click', d => {
-        infoDispatch.call('locationSelected', this, {
-          type: 'point',
-          markers: [d]
-        })
-      })
-      .on('mouseover', function (d) {
-        d3.select(this)
-          .style('fill', d => getMarkerColor(d))
-          .attr('stroke', d => getMarkerColor(d))
-      })
-      .on('mouseout', function (d) {
-        d3.select(this)
-          .style('fill', 'transparent')
-          .attr('stroke', 'transparent')
-      })
   }
 
   // draw legend with sample size of violations
@@ -532,8 +420,13 @@ const bubbleMaps = () => {
           d3.select('.explorer__circle')
             .attr('cx', explorer.centerProjected.x)
             .attr('cy', explorer.centerProjected.y)
+
+          // recreate explore layer
           self.drawMarkersInExplorer()
         })
+        // .on('end', function() {
+        //   self.drawMarkersInExplorer()
+        // })
       )
 
     self.drawMarkersInExplorer()
@@ -557,22 +450,47 @@ const bubbleMaps = () => {
   }
 
   self.drawMarkersInExplorer = () => {
+    console.log('redrawing')
     // fixed distance as 350m at first. only display marker within explore circle
-    explorer.markers = visibleMarkers
-    .filter(d => explorer.centerCoords.distanceTo({
-      lng: d.coords.split(' ')[1],
-      lat: d.coords.split(' ')[0]
-    }) <= explorer.radius)
+    // set paint opacity of marker outside explorer as 0.1
 
+    explorer.markers = basemap
+      .queryRenderedFeatures()
+      .filter(d => {
+        return explorer.centerCoords.distanceTo({
+          lat: d.properties.lat,
+          lng: d.properties.lng
+        }) < 350
+      })
+    console.log(explorer)
+
+    basemap
+      .setPaintProperty(
+        'violation',
+        'circle-opacity',
+        [
+          'match',
+          ['id'],
+          explorer.markers.map(d => d.id),
+          0.5,
+          0.1
+        ]
+      )
+
+    // emit selected marker up
     infoDispatch.call('locationSelected', this, {
       type: 'area',
       radius: explorer.radius,
       markers: explorer.markers,
-      total: d3.sum(explorer.markers, d => d.total)
+      total: d3.sum(explorer.markers, d => d.properties.occurrence)
     })
 
-    self.drawCanvas(explorer.markers)
-    // self.drawSvg(explorer.markers)
+    // infoDispatch.call('locationSelected', this, {
+    //   type: 'area',
+    //   radius: explorer.radius,
+    //   markers: explorer.markers,
+    //   total: d3.sum(explorer.markers, d => d.total)
+    // })
   }
 
   self.getPixelPerMeter = () => {
@@ -599,7 +517,6 @@ const bubbleMaps = () => {
   self.data = value => {
     if (!value) { return data }
     data = value
-    self.formatData()
     return self
   }
 
@@ -609,27 +526,6 @@ const bubbleMaps = () => {
 
   self.isExplorerShowing = () => {
     return explorer.show
-  }
-
-  // this component takes all filters, but only care about markers within map boundary
-  self.formatData = () => {
-    filteredData = filterData(data, self.getFilter())
-    allMarkers = groupByOccurrence(filteredData)
-
-    if (!basemap) { return allMarkers }
-    self.getVisibleMarkers()
-  }
-
-  self.getVisibleMarkers = () => {
-    visibleMarkers = groupByOccurrence(
-      filteredData
-        .filter(d => basemap.getBounds().contains([d.coords.split(' ')[1], d.coords.split(' ')[0]]))
-    )
-  }
-
-  self.clear = () => {
-    var context = d3.select('#d3Canvas').node().getContext('2d')
-    context.clearRect(0, 0, width, height)
   }
 
   self.showExplorerGuide = () => {
