@@ -97,8 +97,11 @@ const reasonList = () => {
     // update summary above timeline
     d3.select('.data__field--period-total .field__value')
       .html(violations)
+    const periodText = d3.timeMonth.count(...globalFilter.period) === 0
+      ? formatTime(globalFilter.period[0])
+      : `${formatTime(globalFilter.period[0])} - ${formatTime(globalFilter.period[1])}`
     d3.select('.data__field--period-time .field__value')
-      .html(formatTime(globalFilter.period[0]))
+      .html(periodText)
     d3.select('.data__field--most-violation .field__label b')
       .html(`(${mostViolation.total})`)
     d3.select('.data__field--most-violation .field__value')

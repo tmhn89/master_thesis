@@ -35,7 +35,14 @@ const timeline = () => {
   self.draw = () => {
     self.setupChart()
     self.drawChart()
-    // self.drawBrush()
+    self.drawBrush()
+
+    d3.select('#psSvg')
+      .node()
+      .insertBefore(
+        d3.select('.timeline__brush').node(),
+        d3.select('#psSvg g').node()
+      )
   }
 
   self.setupChart = () => {
@@ -122,20 +129,17 @@ const timeline = () => {
       .on('mousemove', self.updateTooltip)
       .on('mouseout', self.hideTooltip)
       .on('click', function (d) {
-        d3.selectAll('.timeline__month')
-          .attr('class', 'timeline__month')
-
-        d3.select(this)
-          .attr('class', 'timeline__month timeline__month--selected')
+        selected = [
+          parseTime(d.year, d.month),
+          parseTime(d.year, d.month)
+        ]
+        self.markSelectedValues()
 
         filterDispatch.call(
           'filter',
           this,
           {
-            period: [
-              parseTime(d.year, d.month),
-              parseTime(d.year, d.month)
-            ]
+            period: selected
           }
         )
       })
@@ -220,7 +224,8 @@ const timeline = () => {
         // selection as position on chart
         const selection = d3.event.selection
         // update bursh data
-        d3.select(this).call(self.brushHandle, selection)
+        d3.select('.timeline__brush .selection').attr('fill-opacity', 0.3)
+        // d3.select(this).call(self.brushHandle, selection)
         showLoader(true)
       })
       .on('end', function () {
@@ -238,7 +243,13 @@ const timeline = () => {
         d3.select(this)
           .transition()
           // .duration(SNAPPING_ANIMATION_DURATION)
-          .on('end', () => { filterDispatch.call('filter', this, { period: selected }) })
+          .on('end', () => {
+            filterDispatch.call('filter', this, { period: selected })
+            // hide the brush
+            d3.select('.timeline__brush .selection').attr('fill-opacity', 0)
+            // mark selected months in different color
+            self.markSelectedValues()
+          })
           .call(d3.event.target.move, [
             scale.x(selected[0]) - barWidth / 2,
             scale.x(selected[1]) + barWidth / 2
@@ -255,20 +266,8 @@ const timeline = () => {
           scale.x(selected[0]) - barWidth / 2,
           scale.x(selected[1]) + barWidth / 2
         ])
-    // override default behaviour - clicking outside of the selected area
-    // will select a small piece there rather than deselecting everything
-    // https://bl.ocks.org/mbostock/6498000
-    chartArea.selectAll('.overlay')
-      .each(d => { d.type = 'selection' })
-      .on('mousedown touchstart', brushcentered)
 
-    function brushcentered() {
-      var dx = barWidth, // Use a fixed width when recentering.
-          cx = d3.mouse(this)[0],
-          x0 = cx - dx / 2,
-          x1 = cx + dx / 2;
-      d3.select(this.parentNode).call(brush.move, x1 > width ? [width - dx, width] : x0 < 0 ? [0, dx] : [x0, x1]);
-    }
+    d3.select('.timeline__brush .selection').attr('fill-opacity', 0)
   }
 
   self.brushHandle = (g, selection) => {
@@ -302,6 +301,19 @@ const timeline = () => {
           ? null
           : (d, i) => `translate(${selection[i]}, -${(height) / 2 - margin.top})`
         )
+  }
+
+  /**
+   * Mark selected month with different color by assign them special class
+   */
+  self.markSelectedValues = () => {
+    chartArea.selectAll('.timeline__month')
+      .attr('class', function (d) {
+        return d3.timeMonth.count(parseTime(d.year, d.month), selected[0]) <= 0
+          && d3.timeMonth.count(parseTime(d.year, d.month), selected[1]) >= 0
+          ? 'timeline__month timeline__month--selected'
+          : 'timeline__month'
+      })
   }
 
   // data-setter

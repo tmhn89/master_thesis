@@ -138,8 +138,6 @@ const bubbleMaps = () => {
     }
 
     showLoader(false)
-    endTime = new Date()
-    console.log('render time', endTime - startTime)
   }
 
   self.drawCanvas = markers => {

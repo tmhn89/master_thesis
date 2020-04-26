@@ -24,9 +24,6 @@ var globalFilter = {
   bound: null
 }
 
-var startTime = new Date()
-var endTime
-
 Promise.all([fetchAddressLocation(), fetchReasonGroups(), fetchViolationData()])
   .then(data => {
     // save default global variables
