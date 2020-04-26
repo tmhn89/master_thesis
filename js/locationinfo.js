@@ -106,7 +106,7 @@ const locationInfo = () => {
         .attr('class', 'location-info__placeholder')
         .attr('x', d => scale.x(0) + margin.left)
         .attr('y', d => scale.y(d.id))
-        .attr('width', width - padding.x - margin.right)
+        .attr('width', width - padding.x - margin.left - margin.right)
         .attr('height', barHeight)
         .attr('fill', '#999')
         .attr('fill-opacity', '0.3')
