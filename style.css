@@ -201,9 +201,12 @@ body {
   display: inline-block;
 }
 
-.period__summary .data__field--period-total,
 .period__summary .data__field--period-time {
-  width: 49%;
+  width: 59%;
+}
+
+.period__summary .data__field--period-total {
+  width: 39%;
 }
 
 .period__summary .data__field--most-violation {
@@ -358,7 +361,7 @@ body {
   opacity: 0;
   font-size: 12px;
   box-shadow: -4px 2px 25px rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.8);
   width: 360px;
   color: #8fa799;
   transition: 0.25s ease-in-out;
