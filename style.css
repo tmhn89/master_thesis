@@ -197,6 +197,11 @@ body {
 }
 
 /* period summary */
+.period__summary {
+    margin-top: 24px;
+    padding: 0 8px;
+}
+
 .period__summary .data__field {
   display: inline-block;
 }
