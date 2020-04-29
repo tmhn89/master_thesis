@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&display=swap');
 
+html {
+  overflow: hidden;
+}
+
 body {
   font-family: Lato, sans-serif;
 }
@@ -50,7 +54,7 @@ body {
 }
 
 .left-sidebar {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 360px;
@@ -66,11 +70,17 @@ body {
 }
 
 .page-title {
+  color: #666;
   font-weight: 500;
   font-size: 20px;
   line-height: 23px;
   padding: 24px;
-  position: relative
+  position: relative;
+}
+
+.title__guide-button {
+  cursor: pointer;
+  color: #666;
 }
 
 .sidebar__visibility-control {
@@ -197,6 +207,11 @@ body {
 }
 
 /* period summary */
+.period__summary {
+  margin-top: 24px;
+  padding: 0 8px;
+}
+
 .period__summary .data__field {
   display: inline-block;
 }
@@ -490,4 +505,50 @@ body {
 
 .group__ids {
   color: #8fa799;
+}
+
+/* intro */
+body.show-intro .left-sidebar,
+body.show-intro .right-sidebar {
+  position: absolute;
+  overflow-y: hidden;
+}
+
+body.show-intro #bubblemaps {
+  z-index: -1;
+}
+
+.body.show-intro .content * {
+  pointer-events: none!important;
+}
+
+div#driver-popover-item .driver-popover-title {
+  font-family: Lato;
+  color: #666;
+  font-size: 14px;
+  line-height: 140%;
+}
+
+div#driver-popover-item .driver-popover-description {
+  font-family: Lato;
+  color: #666;
+  font-size: 12px;
+  line-height: 140%;
+}
+
+div#driver-popover-item .driver-popover-footer button {
+  font-family: Lato;
+  font-size: 11px;
+  background: none;
+  border: 1px solid #26ae60;
+  color: #26ae60;
+}
+
+div#driver-popover-item .driver-popover-footer button.driver-prev-btn.driver-disabled {
+  color: #889e88;
+  border: 1px solid #8a9f8a!important;
+}
+
+div#driver-popover-item .driver-popover-footer {
+  margin-top: 24px;
 }

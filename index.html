@@ -6,10 +6,13 @@
 
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://d3js.org/d3-array.v2.min.js"></script>
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js'></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
     <link rel="stylesheet" href="//cdn.materialdesignicons.com/5.1.45/css/materialdesignicons.min.css">
+
+    <script src="https://unpkg.com/driver.js/dist/driver.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/driver.js/dist/driver.min.css">
 
     <link href="style.css" rel="stylesheet" />
   </head>
@@ -21,6 +24,7 @@
       <div class="left-sidebar">
         <div class="page-title">
           <span>Helsinki parking violations<span>
+          <i class="mdi mdi-information title__guide-button"></i>
           <div class="sidebar__visibility-control" onclick="changeSidebarVisibility()">
               <i class="visibility__icon visibility__icon--on mdi mdi-chevron-right"></i>
               <i class="visibility__icon visibility__icon--off mdi mdi-chevron-left"></i>
@@ -37,18 +41,7 @@
           </div>
           <div class="section__content">
             <div id="periodSelector"></div>
-          </div>
-        </div>
 
-        <div class="section section--summary">
-          <div class="section__title">
-            <span>Selected month summary</span>
-            <div class="section__visibility-control" onclick="changeSectionVisibility(event)">
-              <i class="visibility__icon visibility__icon--on mdi mdi-chevron-down"></i>
-              <i class="visibility__icon visibility__icon--off mdi mdi-chevron-up"></i>
-            </div>
-          </div>
-          <div class="section__content">
             <div class="period__summary">
               <div class="data__field data__field--period-time">
                 <div class="field__label">Month</div>
