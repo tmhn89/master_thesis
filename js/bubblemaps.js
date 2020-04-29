@@ -138,6 +138,11 @@ const bubbleMaps = () => {
     }
 
     showLoader(false)
+
+    if (isFirstLoad) {
+      showIntro()
+      isFirstLoad = false
+    }
   }
 
   self.drawCanvas = markers => {

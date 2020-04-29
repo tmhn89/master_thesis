@@ -4,6 +4,8 @@ const SNAPPING_ANIMATION_DURATION = 300
 const EXPLORER_DEFAULT_RADIUS     = 350 // meter
 const EXPLORER_MAX_RADIUS         = 1000 // meter
 
+var isFirstLoad = true
+
 var currentLang   = 'fi'
 var addressBook   = []
 var reasonGroups  = []
@@ -180,3 +182,85 @@ const renderGroupLegend = () => {
     .select('.section--group .group__list')
     .html(colorItemHtml)
 }
+
+const showIntro = () => {
+  const bodyNode = d3.select('body').node()
+  bodyNode.classList.add('show-intro')
+
+  const handleIntroExit = () => {
+    bodyNode.classList.remove('show-intro')
+  }
+
+  const driver = new Driver({
+    onReset: handleIntroExit
+  })
+  driver.defineSteps(getIntro())
+  driver.start()
+}
+
+const getIntro = () => {
+  return [
+    {
+      element: '.section--period',
+      popover: {
+        title: 'Timeline',
+        description: `
+          <p>Display the total violation for each month.</p>
+          <p>Click on a column to <b>select a month</b>, or drag to <b>select multiple consecutive months</b>.</p>
+          <p>The summary below and the violations on the map will be shown accordingly</p>
+        `,
+        position: 'right'
+      }
+    },
+    {
+      element: '.section--reasons',
+      popover: {
+        title: 'Reason list',
+        description: `
+          <p>Display all reasons leading to parking violation in the selected period, sorted by total occurrence.</p>
+          <p><b>Filter the reason</b> displaying on the map by clicking its corresponding checkbox.</p>
+          <p>Deselect all checkboxes to <b>show all reasons</b>.</p>
+          <p>Click on the help icon <i class="mdi mdi-help-circle"></i> to <b>see how the reasons are groupped</b>.</p>
+        `,
+        position: 'right'
+      }
+    },
+    {
+      element: '.control__button--explorer',
+      popover: {
+        title: 'Explorer tool',
+        description: `
+          <p><b>Trigger explorer tool</b> by clicking this button, then click on the map to setup an as-the-crow-flies exploring area.</p>
+          <p><b>Change the size of the exploring area</b> by draging its border.</p>
+        `,
+        position: 'left'
+      }
+    },
+    {
+      element: '.control__button--lang',
+      popover: {
+        title: 'Language switcher',
+        description: `
+          <p><b>Change the language of violation reasons</b> by clicking this button. English and Finnish are available</p>
+        `,
+        position: 'left'
+      }
+    },
+    {
+      element: '.title__guide-button',
+      popover: {
+        title: 'Info button',
+        description: `
+          <p>In case you forgot what you just read and want to see the introduction again, <b>click this button</b></p>
+        `,
+        position: 'right'
+      }
+    }
+  ]
+}
+
+d3
+  .select('.title__guide-button')
+  .on('click', () => {
+    setTimeout(showIntro, 100)
+  })
