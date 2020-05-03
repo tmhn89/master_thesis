@@ -7,7 +7,7 @@ import pdb
 import time
 start_time = time.time()
 
-year = 2018
+year = 2019
 
 processed_data = pd.read_csv('data/processed_{}_no_address.csv'.format(year), sep=',')
 df             = pd.DataFrame(processed_data, columns = [
