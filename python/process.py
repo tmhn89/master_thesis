@@ -8,7 +8,7 @@ start_time = time.time()
 import googlemaps
 gmaps = googlemaps.Client(key='AIzaSyBoLgIe6ZT1H1yutB1NYr4P3bJJJfyhwE0')
 
-year = 2018
+year = 2019
 rec = 1
 
 print('-- start --')
@@ -84,8 +84,8 @@ def set_coords (address_text):
 
     # if address not found, search using google library then save into address file
     if address_record.empty:
-      print(' - geocoding: {}'.format(address_text))
-      geocode_result  = gmaps.geocode(address_text)
+      print(' - geocoding: {}'.format(address_text + ' Helsinki'))
+      geocode_result  = gmaps.geocode(address_text + ' Helsinki')
 
       if not geocode_result == []:
         lat             = geocode_result[0]['geometry']['location']['lat']
