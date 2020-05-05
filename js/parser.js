@@ -52,7 +52,7 @@ const getMarkerRadius = (occurrence, zoom, period) => {
   const periodLength = d3.timeMonth.count(...period) + 1
   const monthlyScale = d3.scaleLinear()
     // .domain([0, 160])
-    .domain([0, 240 * periodLength]) // assume that a month has maximum 240 violations, multiply by number of months in period
+    .domain([0, 300 * periodLength]) // assume that a month has maximum 240 violations, multiply by number of months in period
     .range([1, (zoom - 5) * 7])
   // make marker bigger on close zoom
   let addition = zoom > ZOOM_INTERACTION_LEVEL ? (zoom - ZOOM_INTERACTION_LEVEL + 2) : 0
