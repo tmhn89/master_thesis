@@ -182,12 +182,12 @@ body {
 }
 
 .timeline__month {
-  fill: #27ae60;
+  fill-opacity: 0.5;
 }
 
 .timeline__month:hover,
 .timeline__month--selected {
-  fill: #e67e22;
+  fill-opacity: 1;
 }
 
 .timeline__tooltip {
