@@ -164,7 +164,7 @@ const bubbleMaps = () => {
     markers.forEach(marker => {
       let x = getProjectedPoint(marker.coords, projection)[0]
       let y = getProjectedPoint(marker.coords, projection)[1]
-      let radius = getMarkerRadius(marker.total, basemap.getZoom(), filter.period)
+      let radius = getMarkerRadius(marker.total, basemap.getZoom(), filter)
       // iterate marker list and draw
       context.strokeStyle = getMarkerColor(marker)
       context.fillStyle = chroma(getMarkerColor(marker)).alpha(0.5)
@@ -201,8 +201,8 @@ const bubbleMaps = () => {
         .attr('cx', d => { return getProjectedPoint(d.coords, projection)[0] })
         .attr('cy', d => { return getProjectedPoint(d.coords, projection)[1] })
         .style('fill', 'transparent')
-        .attr('fill-opacity', 0.5)
-        .attr('r', d => getMarkerRadius(d.total, basemap.getZoom(), filter.period))
+        .attr('fill-opacity', filter.reasons.length === 0 ? 0.5 : 1)
+        .attr('r', d => getMarkerRadius(d.total, basemap.getZoom(), filter))
         .attr('cursor', 'pointer')
       // .on('click', d => printLegend(d))
       .on('click', d => {
@@ -228,7 +228,7 @@ const bubbleMaps = () => {
     const filter = self.getFilter()
 
     d3.select('#lSvg').remove()
-    const scaledRadius = r => getMarkerRadius(r, basemap.getZoom(), filter.period)
+    const scaledRadius = r => getMarkerRadius(r, basemap.getZoom(), filter)
 
     var lSvg = d3.select(basemap.getCanvasContainer())
       .append('svg')

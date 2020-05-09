@@ -220,7 +220,7 @@ const getIntro = () => {
           <p>Display all reasons leading to parking violation in the selected period, sorted by total occurrence.</p>
           <p><b>Filter the reason</b> displaying on the map by clicking its corresponding checkbox.</p>
           <p>Deselect all checkboxes to <b>show all reasons</b>.</p>
-          <p>Click on the help icon <i class="mdi mdi-help-circle"></i> to <b>see how the reasons are groupped</b>.</p>
+          <p>Click on the help icon <i class="mdi mdi-help-circle"></i> to <b>see how the reasons are groupped and colored</b>.</p>
         `,
         position: 'right'
       }

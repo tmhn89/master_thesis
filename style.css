@@ -283,6 +283,11 @@ body {
   color: #8fa799;
 }
 
+.reason__id {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+}
+
 .reason__id .id__color {
   width: 12px;
   height: 12px;

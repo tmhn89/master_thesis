@@ -47,13 +47,14 @@ const getProjectedPoint = (coords, projection) => {
   return projection([coords.split(' ')[1], coords.split(' ')[0]])
 }
 
-const getMarkerRadius = (occurrence, zoom, period) => {
+const getMarkerRadius = (occurrence, zoom, filter) => {
   // const periodLength = period[1] - period[0] + 1
-  const periodLength = d3.timeMonth.count(...period) + 1
+  const periodLength = d3.timeMonth.count(...filter.period) + 1
+  const minRadius = filter.reasons.length === 0 ? 1 : 2
   const monthlyScale = d3.scaleLinear()
     // .domain([0, 160])
     .domain([0, 300 * periodLength]) // assume that a month has maximum 240 violations, multiply by number of months in period
-    .range([1, (zoom - 5) * 7])
+    .range([minRadius, (zoom - 5) * 7])
   // make marker bigger on close zoom
   let addition = zoom > ZOOM_INTERACTION_LEVEL ? (zoom - ZOOM_INTERACTION_LEVEL + 2) : 0
   return monthlyScale(occurrence) + addition
