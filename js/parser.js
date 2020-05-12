@@ -91,7 +91,10 @@ const getReasonText = reasonId => {
     : reasonListFi
 
   let reasonText = langFile[reasonId.slice(0, 4)]
-  return reasonText.replace(/^./, reasonText[0].toUpperCase())
+  // temporary fix for new, not found reason
+  return reasonText
+    ? reasonText.replace(/^./, reasonText[0].toUpperCase())
+    : '-'
 }
 
 /**

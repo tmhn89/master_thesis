@@ -122,7 +122,6 @@ const timeline = () => {
         .attr('width', barWidth)
         .attr('height', d => height - scale.y(d.violations) - margin.top * 2)
         .attr('fill', '#27ae60')
-        // .attr('fill-opacity', '1')
         .attr('transform', `translate(${-barWidth / 2}, ${-margin.top * 2})`)
         .attr('cursor', 'pointer')
       .on('mouseover', self.showTooltip)
